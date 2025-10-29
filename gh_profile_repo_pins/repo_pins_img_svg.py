@@ -34,7 +34,6 @@ class RepoPinImg:
         "0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2 .65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2zm3-10c-.66 "
         "0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2z"
     )
-    __ICON_FILL: str = "var(--fg-muted)"
 
     __BADGE_PUBLIC: str = "Public"
     __BADGE_ARCHIVE: str = " archive"
@@ -170,11 +169,11 @@ class RepoPinImg:
             f' rx="{round(badge_h / 2)}" '
             f'ry="{round(badge_h / 2)}" '
             f'fill="var(--canvas)" '
-            f'stroke="{"var(--danger-fg)" if self.__repo_pin_data.is_archived else "var(--border)"}"/>'
+            f'stroke="{"var(--danger)" if self.__repo_pin_data.is_archived else "var(--border)"}"/>'
             f'<text x="{badge_pad_x}" '
             f'y="{round(badge_h / 2 + badge_font_size / 2) - 1}" '
             f'font-size="{badge_font_size}" '
-            f'fill="{"var(--danger-fg)" if self.__repo_pin_data.is_archived else "var(--fg-muted)"}" '
+            f'fill="{"var(--danger)" if self.__repo_pin_data.is_archived else "var(--text)"}" '
             f'textLength="{badge_w - 2 * badge_pad_x}" '
             f'lengthAdjust="spacingAndGlyphs">'
             f"{badge_txt}"
@@ -286,7 +285,7 @@ class RepoPinImg:
                 f'x="{self.__PADDING}" '
                 f'y="{((repo_name_y + self.__PADDING) + self.__DESC_SIZE) + (i * self.__DESC_LINE_H):.2f}" '
                 f'font-size="{self.__DESC_SIZE}" '
-                f'fill="var(--fg-muted)"'
+                f'fill="var(--text)"'
                 f">"
                 f"{line}"
                 f"</text>"
@@ -302,8 +301,8 @@ class RepoPinImg:
             f">"
             f"<path "
             f'd="{path_d}" '
-            f'fill="{"none" if is_star else self.__ICON_FILL}" '
-            f'stroke="{self.__ICON_FILL if is_star else "none"}" '
+            f'fill="{"none" if is_star else "var(--text)"}" '
+            f'stroke="{"var(--text)" if is_star else "none"}" '
             f'stroke-width="{1.4 if is_star else 0}" '
             f'fill-rule="evenodd"'
             f"/>"
@@ -370,7 +369,7 @@ class RepoPinImg:
             f'x="{footer_x + icon_txt_gap:.2f}" '
             f'y="{footer_y:.2f}" '
             f'font-size="{self.__META_SIZE}" '
-            f'fill="var(--fg-muted)">'
+            f'fill="var(--text)">'
             f"{txt}"
             f"</text>"
             f"</g>"
@@ -398,7 +397,7 @@ class RepoPinImg:
                 f'x="{txt_x}" '
                 f'y="{footer_y}" '
                 f'font-size="{self.__META_SIZE}" '
-                f'fill="var(--fg-muted)"'
+                f'fill="var(--text)"'
                 f">"
                 f"{self.__repo_pin_data.primary_language_name}"
                 f"</text>"
@@ -514,7 +513,7 @@ def tst_svg_render() -> None:
 
     GenerateRepoPins.update_themes()  # update the database with any new json themes not in enums.RepoPinsImgThemeName
 
-    test_theme_name: str = "github"
+    test_theme_name: str = "github_soft"
     test_username: str = "R055A"
     tst_input: list[dict[str, str | int | bool | dict[str, str]]] = [
         {
