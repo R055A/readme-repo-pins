@@ -506,15 +506,15 @@ class RepoPinImg:
         self.__render_svg()
 
 
-def tst_svg_render() -> None:
+def tst_svg_render(
+    test_theme_name: str = "github_soft", test_username: str = "R055A"
+) -> None:
     from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageThemeError
     from gh_profile_repo_pins.repo_pins_generate import GenerateRepoPins
     from gh_profile_repo_pins.utils import write_svg
 
     GenerateRepoPins.update_themes()  # update the database with any new json themes not in enums.RepoPinsImgThemeName
 
-    test_theme_name: str = "github_soft"
-    test_username: str = "R055A"
     tst_input: list[dict[str, str | int | bool | dict[str, str]]] = [
         {
             "name": "readme-repo-pins",
@@ -583,4 +583,6 @@ def tst_svg_render() -> None:
 
 
 if __name__ == "__main__":
-    tst_svg_render()
+    from gh_profile_repo_pins.utils import tst_svg_parse_args
+
+    tst_svg_render(*tst_svg_parse_args())

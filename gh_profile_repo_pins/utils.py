@@ -143,6 +143,24 @@ def parse_args() -> tuple[str, str, str, str | dict, int, str, bool, bool]:
     )
 
 
+def tst_svg_parse_args() -> tuple[str, str]:
+    parser = ArgumentParser(description="Local test pin themes and SVG rendering.")
+    parser.add_argument(
+        "--theme",
+        type=str,
+        default="github_soft",
+        help="A repo pin theme name, such as 'github', github_soft' or 'dracula', for examples.",
+    )
+    parser.add_argument(
+        "--username",
+        type=str,
+        default="R055A",
+        help="A GitHub account username.",
+    )
+    args = parser.parse_args()
+    return args.theme.lower() if args.theme else args.theme, args.username
+
+
 def init_logger() -> Logger:
     basicConfig(
         level=WARNING,
