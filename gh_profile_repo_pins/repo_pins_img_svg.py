@@ -441,8 +441,17 @@ class RepoPinImg:
         txt: str = self.__fmt_footer_stats_str(stats_count=stats_count)
         icon_txt_gap: float = round(15 * self.__SCALE)
         txt_w: float = self.__measure(txt=txt, font_px=self.__META_SIZE)
+        stats_page: str = "stargazers" if is_star else "forks"
+        stats_url: str = f"{self.__repo_pin_data.url}/{stats_page}"
+        icon_svg: str = self.__render_icon(
+            path_d=stats_icon, 
+            x=footer_x,
+            y=footer_top + (footer_h - icon_size) / 2 + icon_y_adj, 
+            size=icon_size, 
+            is_star=is_star
+        )
         self.__svg_str += (
-            f'<a href="{f'{self.__repo_pin_data.url}/{"stargazers" if is_star else "forks"}'}" target="_blank">'
+            f'<a href="{stats_url}" target="_blank">'
             f"<g>"
             f"<rect "
             f'x="{footer_x:.2f}" '
@@ -453,13 +462,7 @@ class RepoPinImg:
             f'pointer-events="all" '
             f'style="cursor:pointer;" '
             f"/>"
-            f"{self.__render_icon(
-                path_d=stats_icon, 
-                x=footer_x,
-                y=footer_top + (footer_h - icon_size) / 2 + icon_y_adj, 
-                size=icon_size, 
-                is_star=is_star
-            )}"
+            f"{icon_svg}"
             f"<text "
             f'x="{footer_x + icon_txt_gap:.2f}" '
             f'y="{footer_y:.2f}" '
