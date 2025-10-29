@@ -90,18 +90,19 @@ class RepoPinImg:
         ttl: float = sum(self.__char_width(c, font_px) for c in txt)
         return max(0.0, ttl - min(ttl * 0.08, max(0, len(txt) - 1) * (0.02 * font_px)))
 
-    def __truncate_to_width(self, txt: str, max_w: float) -> str:
-        if self.__measure(txt=txt, font_px=self.__NAME_SIZE) <= max_w:
+    def __truncate_to_width(self, txt: str, max_w: float, font_px: float = None) -> str:
+        font_size: float = font_px if font_px is not None else self.__NAME_SIZE
+        if self.__measure(txt=txt, font_px=font_size) <= max_w:
             return txt
 
         ell: str = "…"
-        if self.__measure(txt=ell, font_px=self.__NAME_SIZE) > max_w:
+        if self.__measure(txt=ell, font_px=font_size) > max_w:
             return ""
 
         start, end = 0, len(txt)
         while start < end:
             mid: float = (start + end + 1) // 2
-            if self.__measure(txt=txt[:mid] + ell, font_px=self.__NAME_SIZE) <= max_w:
+            if self.__measure(txt=txt[:mid] + ell, font_px=font_size) <= max_w:
                 start = mid
             else:
                 end = mid - 1
@@ -259,17 +260,111 @@ class RepoPinImg:
                     lines[-1] = (last_word + ell) if last_word else ell
         return lines
 
-    def __parent_repo(self):
-        pass  # TODO
+    def __parent_repo(self, repo_name_y: float) -> float:
+        """
+        Render parent repo information for forked repositories.
+        Returns the y position after the parent repo display (for adjusting description position).
+        """
+        if not (self.__repo_pin_data.is_fork and self.__repo_pin_data.parent):
+            return repo_name_y
+        
+        parent_font_size: float = 11 * self.__SCALE
+        parent_padding_y: float = round(6 * self.__SCALE)
+        parent_y: float = repo_name_y + self.__NAME_SIZE + parent_padding_y
+        
+        # Fork icon
+        fork_icon_size: float = 10 * self.__SCALE
+        fork_icon_x: float = self.__PADDING + round(18 * self.__SCALE)
+        fork_icon_y: float = parent_y - fork_icon_size * 0.35
+        
+        # Parent repo text
+        parent_text_prefix: str = "Forked from "
+        parent_text: str = f"{parent_text_prefix}{self.__repo_pin_data.parent}"
+        parent_text_x: float = fork_icon_x + round(18 * self.__SCALE)
+        parent_url: str = f"https://github.com/{self.__repo_pin_data.parent}"
+        
+        # Truncate parent text if too long
+        max_parent_w: float = (self.__WIDTH - self.__PADDING) - parent_text_x
+        display_parent_text: str = self.__truncate_to_width(
+            txt=parent_text,
+            max_w=max_parent_w if max_parent_w > 0 else 0,
+            font_px=parent_font_size,
+        )
+        
+        # Render fork icon
+        self.__svg_str += self.__render_icon(
+            path_d=self.__ICON_FORK,
+            x=fork_icon_x,
+            y=fork_icon_y,
+            size=fork_icon_size,
+        )
+        
+        # Render parent repo text as clickable link
+        self.__svg_str += (
+            f'<a '
+            f'href="{parent_url}" '
+            f'target="_blank"'
+            f'>'
+            f'<text '
+            f'x="{parent_text_x}" '
+            f'y="{parent_y}" '
+            f'font-size="{parent_font_size}" '
+            f'fill="var(--text)"'
+            f'>'
+        )
+        
+        # Escape HTML entities in parent text
+        escaped_parent_text_prefix: str = (
+            parent_text_prefix
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+        )
+        
+        # Split prefix and parent repo name for styling
+        if display_parent_text.startswith(parent_text_prefix):
+            parent_repo_only: str = display_parent_text[len(parent_text_prefix):]
+            escaped_parent_repo: str = (
+                parent_repo_only
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace('"', "&quot;")
+                .replace("'", "&apos;")
+            )
+            self.__svg_str += (
+                f'<tspan fill="var(--text)" opacity="0.7">{escaped_parent_text_prefix}</tspan>'
+                f'<tspan fill="var(--link)">{escaped_parent_repo}</tspan>'
+            )
+        else:
+            escaped_display_text: str = (
+                display_parent_text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace('"', "&quot;")
+                .replace("'", "&apos;")
+            )
+            self.__svg_str += escaped_display_text
+        
+        self.__svg_str += '</text></a>'
+        
+        # Return the y position after parent repo (for description placement)
+        return parent_y + parent_font_size + parent_padding_y
 
     def __description(self, repo_name_y: float, description_y: float) -> None:
-        if self.__repo_pin_data.is_fork and self.__repo_pin_data.parent:
-            self.__parent_repo()  # TODO
+        # Display parent repo if this is a fork (will adjust repo_name_y)
+        adjusted_repo_name_y: float = (
+            self.__parent_repo(repo_name_y=repo_name_y)
+            if self.__repo_pin_data.is_fork and self.__repo_pin_data.parent
+            else repo_name_y
+        )
 
         wrapped_description_lines: list[str] = self.__wrap_lines(
             max_width_px=(self.__WIDTH - 2 * self.__PADDING),
             area_height_px=max(
-                0.0, (description_y - self.__PADDING) - (repo_name_y + self.__PADDING)
+                0.0, (description_y - self.__PADDING) - (adjusted_repo_name_y + self.__PADDING)
             ),
         )
         for i, line in enumerate(wrapped_description_lines):
@@ -283,7 +378,7 @@ class RepoPinImg:
             self.__svg_str += (
                 f"<text "
                 f'x="{self.__PADDING}" '
-                f'y="{((repo_name_y + self.__PADDING) + self.__DESC_SIZE) + (i * self.__DESC_LINE_H):.2f}" '
+                f'y="{((adjusted_repo_name_y + self.__PADDING) + self.__DESC_SIZE) + (i * self.__DESC_LINE_H):.2f}" '
                 f'font-size="{self.__DESC_SIZE}" '
                 f'fill="var(--text)"'
                 f">"
