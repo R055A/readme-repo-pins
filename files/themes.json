@@ -1,0 +1,38 @@
+{
+  "github": {
+    "light": {
+      "canvas": "#ffffff",
+      "border": "#d0d7de",
+      "fg_text": "#24292f",
+      "fg_muted": "#57606a",
+      "link": "#0969da",
+      "danger_fg": "#cf222e"
+    },
+    "dark": {
+      "canvas": "#0d1117",
+      "border": "#30363d",
+      "fg_text": "#c9d1d9",
+      "fg_muted": "#8b949e",
+      "link": "#539bf5",
+      "danger_fg": "#f85149"
+    }
+  },
+  "github_soft": {
+    "light": {
+      "canvas": "#ffffff",
+      "border": "#d0d7de",
+      "fg_text": "#24292f",
+      "fg_muted": "#57606a",
+      "link": "#0969da",
+      "danger_fg": "#cf222e"
+    },
+    "dark": {
+      "canvas": "#22272e",
+      "border": "#444c56",
+      "fg_text": "#adbac7",
+      "fg_muted": "#768390",
+      "link": "#539bf5",
+      "danger_fg": "#f47067"
+    }
+  }
+}
