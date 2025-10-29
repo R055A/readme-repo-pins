@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <svg 
+          width="400" 
+          height="138" 
+          viewBox="0 0 400 138" 
+          xmlns="http://www.w3.org/2000/svg" 
+          role="img" 
+          aria-label="another-fork"
+        >
+          <title>another-fork</title>
+          <style>:root {
+          --canvas: #ffffff; --border: #d1d9e0; 
+          --text: #59636e; --danger: #9a6700; --link: #0969da;
+        }@media (prefers-color-scheme: dark) { :root {
+          --canvas: #0d1117; --border: #3d444d; 
+          --text: #9198a1; --danger: #d29922; --link: #4493f8;
+        } }text { 
+              font-family: -apple-system, 
+              BlinkMacSystemFont, 
+              "Segoe UI", 
+              "Noto Sans", 
+              Helvetica, 
+              Arial, 
+              sans-serif; 
+            } 
+          </style>
+          <defs><clipPath id="clip"><rect 
+            x="0" 
+            y="0" 
+            width="400" 
+            height="138" 
+            rx="6" 
+            ry="6"
+          /></clipPath></defs>
+          <g clip-path="url(#clip)">
+            <rect 
+              x="0" 
+              y="0" 
+              width="400" 
+              height="138" 
+              fill="var(--canvas)" 
+              stroke="var(--border)"
+            />
+            <g transform="translate(16.00,19.44) scale(0.8750)"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8ZM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.249.249 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2Z" fill="var(--text)" stroke="none" stroke-width="0" fill-rule="evenodd"/></g>
+        <a href="https://github.com/testuser/another-fork" target="_blank"><text x="34" y="30.0" font-size="14.0" fill="var(--link)"><tspan font-weight="600">another-fork</tspan></text></a><g transform="translate(134.96,17.10)"><rect width="38" height="16" rx="8" ry="8" fill="var(--canvas)" stroke="var(--border)"/><text x="6" y="12" font-size="10.0" fill="var(--text)" textLength="26" lengthAdjust="spacingAndGlyphs">Public</text></g><g transform="translate(34.00,46.50) scale(0.6250)"><path d="M8 1a1.993 1.993 0 00-1 3.72V6L5 8 3 6V4.72A1.993 1.993 0 002 1a1.993 1.993 0 00-1 3.72V6.5l3 3v1.78A1.993 1.993 0 005 15a1.993 1.993 0 001-3.72V9.5l3-3V4.72A1.993 1.993 0 008 1zM2 4.2C1.34 4.2.8 3.65.8 3c0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2zm3 10c-.66 0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2 .65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2zm3-10c-.66 0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2z" fill="var(--text)" stroke="none" stroke-width="0" fill-rule="evenodd"/></g><a href="https://github.com/very-long-organization-name/very-long-repository-name-with-many-words" target="_blank"><text x="52" y="50.0" font-size="11.0" fill="var(--text)"><tspan fill="var(--text)" opacity="0.7">Forked from </tspan><tspan fill="var(--link)">very-long-organization-name/very-long-repository…</tspan></text></a><circle cx="23" cy="115.0" r="7" fill="#3178C6"/><text x="36" y="119.7" font-size="12.0" fill="var(--text)">TypeScript</text><a href="https://github.com/testuser/another-fork/stargazers" target="_blank"><g><rect x="108.44" y="109.00" width="36.72" height="13.00" fill="transparent" pointer-events="all" style="cursor:pointer;" /><g transform="translate(108.44,108.50) scale(0.8125)"><path d="M8 12.027L3.33 14.5l.89-5.184L.5 5.763l5.165-.75L8 0l2.335 5.013 5.165.75-3.72 3.553.89 5.184L8 12.027z" fill="none" stroke="var(--text)" stroke-width="1.4" fill-rule="evenodd"/></g><text x="123.44" y="119.70" font-size="12.0" fill="var(--text)">5.0k</text></g></a><a href="https://github.com/testuser/another-fork/forks" target="_blank"><g><rect x="159.16" y="109.00" width="33.60" height="13.00" fill="transparent" pointer-events="all" style="cursor:pointer;" /><g transform="translate(159.16,109.00) scale(0.8125)"><path d="M8 1a1.993 1.993 0 00-1 3.72V6L5 8 3 6V4.72A1.993 1.993 0 002 1a1.993 1.993 0 00-1 3.72V6.5l3 3v1.78A1.993 1.993 0 005 15a1.993 1.993 0 001-3.72V9.5l3-3V4.72A1.993 1.993 0 008 1zM2 4.2C1.34 4.2.8 3.65.8 3c0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2zm3 10c-.66 0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2 .65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2zm3-10c-.66 0-1.2-.55-1.2-1.2 0-.65.55-1.2 1.2-1.2.65 0 1.2.55 1.2 1.2 0 .65-.55 1.2-1.2 1.2z" fill="var(--text)" stroke="none" stroke-width="0" fill-rule="evenodd"/></g><text x="174.16" y="119.70" font-size="12.0" fill="var(--text)">300</text></g></a>
+          </g>
+          <rect 
+            x="0.5" 
+            y="0.5" 
+            width="399" 
+            height="137" 
+            rx="6" 
+            ry="6" 
+            fill="none" 
+            stroke="var(--border)"
+          />
+        </svg>
+        
