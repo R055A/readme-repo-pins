@@ -8,16 +8,14 @@ from dataclasses import dataclass
 class ThemeSVG:
     canvas: str  # pin background
     border: str  # pin border
-    fg_text: str  # primary text
-    fg_muted: str  # secondary text
-    danger_fg: str  # archive text/badge
+    text: str  # description text
+    danger: str  # archive text/badge
     link: str  # hyperlink text (repo name)
 
     def __repr__(self) -> str:
         return f""":root {{
           --canvas: {self.canvas}; --border: {self.border}; 
-          --fg-text: {self.fg_text}; --fg-muted: {self.fg_muted};
-          --danger-fg: {self.danger_fg}; --link: {self.link};
+          --text: {self.text}; --danger: {self.danger}; --link: {self.link};
         }}"""
 
 
