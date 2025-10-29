@@ -269,7 +269,7 @@ class RepoPinImg:
             return repo_name_y
         
         parent_font_size: float = 11 * self.__SCALE
-        parent_padding_y: float = round(6 * self.__SCALE)
+        parent_padding_y: float = round(4 * self.__SCALE)  # Reduced from 6 to 4 for more compact display
         parent_y: float = repo_name_y + self.__NAME_SIZE + parent_padding_y
         
         # Fork icon
@@ -351,7 +351,8 @@ class RepoPinImg:
         self.__svg_str += '</text></a>'
         
         # Return the y position after parent repo (for description placement)
-        return parent_y + parent_font_size + parent_padding_y
+        # Use minimal padding to maximize space for description
+        return parent_y + parent_font_size + round(2 * self.__SCALE)
 
     def __description(self, repo_name_y: float, description_y: float) -> None:
         # Display parent repo if this is a fork (will adjust repo_name_y)
