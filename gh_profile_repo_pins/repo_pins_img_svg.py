@@ -90,19 +90,18 @@ class RepoPinImg:
         ttl: float = sum(self.__char_width(c, font_px) for c in txt)
         return max(0.0, ttl - min(ttl * 0.08, max(0, len(txt) - 1) * (0.02 * font_px)))
 
-    def __truncate_to_width(self, txt: str, max_w: float, font_px: float = None) -> str:
-        font_size: float = font_px if font_px is not None else self.__NAME_SIZE
-        if self.__measure(txt=txt, font_px=font_size) <= max_w:
+    def __truncate_to_width(self, txt: str, max_w: float) -> str:
+        if self.__measure(txt=txt, font_px=self.__NAME_SIZE) <= max_w:
             return txt
 
         ell: str = "…"
-        if self.__measure(txt=ell, font_px=font_size) > max_w:
+        if self.__measure(txt=ell, font_px=self.__NAME_SIZE) > max_w:
             return ""
 
         start, end = 0, len(txt)
         while start < end:
             mid: float = (start + end + 1) // 2
-            if self.__measure(txt=txt[:mid] + ell, font_px=font_size) <= max_w:
+            if self.__measure(txt=txt[:mid] + ell, font_px=self.__NAME_SIZE) <= max_w:
                 start = mid
             else:
                 end = mid - 1
@@ -189,20 +188,13 @@ class RepoPinImg:
         ):
             return []
 
-        # Use tighter line height when parent repo is shown to maximize available lines
-        effective_line_height: float = (
-            self.__DESC_SIZE * 1.2  # Tighter spacing (1.2 vs 1.35) when parent repo shown
-            if (self.__repo_pin_data.is_fork and self.__repo_pin_data.parent)
-            else self.__DESC_LINE_H
-        )
-
         max_lines: int = max(
             0,
             min(
                 3,
                 1
                 + max(
-                    0, int((area_height_px - self.__DESC_SIZE) // effective_line_height)
+                    0, int((area_height_px - self.__DESC_SIZE) // self.__DESC_LINE_H)
                 ),
             ),
         )
@@ -267,110 +259,17 @@ class RepoPinImg:
                     lines[-1] = (last_word + ell) if last_word else ell
         return lines
 
-    def __parent_repo(self, repo_name_y: float) -> float:
-        """
-        Render parent repo information for forked repositories.
-        Returns the y position after the parent repo display (for adjusting description position).
-        """
-        if not (self.__repo_pin_data.is_fork and self.__repo_pin_data.parent):
-            return repo_name_y
-        
-        parent_font_size: float = 10 * self.__SCALE  # Reduced from 11 to save vertical space
-        parent_padding_y: float = round(1 * self.__SCALE)  # Minimal padding (reduced from 2)
-        parent_y: float = repo_name_y + self.__NAME_SIZE + parent_padding_y
-        
-        # Parent repo text (left-aligned; no fork icon per maintainer request)
-        parent_text_prefix: str = "Forked from "
-        parent_text: str = f"{parent_text_prefix}{self.__repo_pin_data.parent}"
-        parent_text_x: float = self.__PADDING
-        parent_url: str = f"https://github.com/{self.__repo_pin_data.parent}"
-        
-        # Truncate parent text if too long
-        max_parent_w: float = (self.__WIDTH - self.__PADDING) - parent_text_x
-        display_parent_text: str = self.__truncate_to_width(
-            txt=parent_text,
-            max_w=max_parent_w if max_parent_w > 0 else 0,
-            font_px=parent_font_size,
-        )
-        
-        # Render parent repo text as clickable link
-        self.__svg_str += (
-            f'<a '
-            f'href="{parent_url}" '
-            f'target="_blank"'
-            f'>'
-            f'<text '
-            f'x="{parent_text_x}" '
-            f'y="{parent_y}" '
-            f'font-size="{parent_font_size}" '
-            f'fill="var(--text)" '
-            f'style="text-decoration: underline;"'
-            f'>'
-        )
-        
-        # Escape HTML entities in parent text
-        escaped_parent_text_prefix: str = (
-            parent_text_prefix
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace('"', "&quot;")
-        )
-        
-        # Split prefix and parent repo name for styling
-        if display_parent_text.startswith(parent_text_prefix):
-            parent_repo_only: str = display_parent_text[len(parent_text_prefix):]
-            escaped_parent_repo: str = (
-                parent_repo_only
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace('"', "&quot;")
-                .replace("'", "&apos;")
-            )
-            self.__svg_str += (
-                f'<tspan fill="var(--text)" opacity="0.7">{escaped_parent_text_prefix}</tspan>'
-                f'<tspan fill="var(--text)">{escaped_parent_repo}</tspan>'
-            )
-        else:
-            escaped_display_text: str = (
-                display_parent_text
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace('"', "&quot;")
-                .replace("'", "&apos;")
-            )
-            self.__svg_str += escaped_display_text
-        
-        self.__svg_str += '</text></a>'
-        
-        # Return the y position after parent repo (for description placement)
-        # Use minimal padding to maximize space for description (reduced to 1px for compact display)
-        return parent_y + parent_font_size + round(1 * self.__SCALE)
+    def __parent_repo(self):
+        pass  # TODO
 
     def __description(self, repo_name_y: float, description_y: float) -> None:
-        # Display parent repo if this is a fork (will adjust repo_name_y)
-        adjusted_repo_name_y: float = (
-            self.__parent_repo(repo_name_y=repo_name_y)
-            if self.__repo_pin_data.is_fork and self.__repo_pin_data.parent
-            else repo_name_y
-        )
+        if self.__repo_pin_data.is_fork and self.__repo_pin_data.parent:
+            self.__parent_repo()  # TODO
 
-        # Reduce padding calculation to maximize space for description when parent repo is shown
-        desc_top_padding: float = (
-            round(1 * self.__SCALE) if (self.__repo_pin_data.is_fork and self.__repo_pin_data.parent)
-            else self.__PADDING
-        )
-        # Reduce bottom padding when parent repo is shown to maximize description space
-        desc_bottom_padding: float = (
-            round(4 * self.__SCALE) if (self.__repo_pin_data.is_fork and self.__repo_pin_data.parent)
-            else self.__PADDING
-        )
         wrapped_description_lines: list[str] = self.__wrap_lines(
             max_width_px=(self.__WIDTH - 2 * self.__PADDING),
             area_height_px=max(
-                0.0, (description_y - desc_bottom_padding) - (adjusted_repo_name_y + desc_top_padding)
+                0.0, (description_y - self.__PADDING) - (repo_name_y + self.__PADDING)
             ),
         )
         for i, line in enumerate(wrapped_description_lines):
@@ -381,21 +280,10 @@ class RepoPinImg:
                 .replace('"', "&quot;")
                 .replace("'", "&apos;")
             )
-            # Use reduced padding when parent repo is shown
-            desc_start_y: float = adjusted_repo_name_y + (
-                round(1 * self.__SCALE) if (self.__repo_pin_data.is_fork and self.__repo_pin_data.parent)
-                else self.__PADDING
-            )
-            # Use tighter line height when parent repo is shown
-            effective_line_height: float = (
-                self.__DESC_SIZE * 1.2  # Tighter spacing when parent repo shown
-                if (self.__repo_pin_data.is_fork and self.__repo_pin_data.parent)
-                else self.__DESC_LINE_H
-            )
             self.__svg_str += (
                 f"<text "
                 f'x="{self.__PADDING}" '
-                f'y="{desc_start_y + self.__DESC_SIZE + (i * effective_line_height):.2f}" '
+                f'y="{((repo_name_y + self.__PADDING) + self.__DESC_SIZE) + (i * self.__DESC_LINE_H):.2f}" '
                 f'font-size="{self.__DESC_SIZE}" '
                 f'fill="var(--text)"'
                 f">"
@@ -458,17 +346,8 @@ class RepoPinImg:
         txt: str = self.__fmt_footer_stats_str(stats_count=stats_count)
         icon_txt_gap: float = round(15 * self.__SCALE)
         txt_w: float = self.__measure(txt=txt, font_px=self.__META_SIZE)
-        stats_page: str = "stargazers" if is_star else "forks"
-        stats_url: str = f"{self.__repo_pin_data.url}/{stats_page}"
-        icon_svg: str = self.__render_icon(
-            path_d=stats_icon, 
-            x=footer_x,
-            y=footer_top + (footer_h - icon_size) / 2 + icon_y_adj, 
-            size=icon_size, 
-            is_star=is_star
-        )
         self.__svg_str += (
-            f'<a href="{stats_url}" target="_blank">'
+            f'<a href="{f'{self.__repo_pin_data.url}/{"stargazers" if is_star else "forks"}'}" target="_blank">'
             f"<g>"
             f"<rect "
             f'x="{footer_x:.2f}" '
@@ -479,7 +358,13 @@ class RepoPinImg:
             f'pointer-events="all" '
             f'style="cursor:pointer;" '
             f"/>"
-            f"{icon_svg}"
+            f"{self.__render_icon(
+                path_d=stats_icon, 
+                x=footer_x,
+                y=footer_top + (footer_h - icon_size) / 2 + icon_y_adj, 
+                size=icon_size, 
+                is_star=is_star
+            )}"
             f"<text "
             f'x="{footer_x + icon_txt_gap:.2f}" '
             f'y="{footer_y:.2f}" '
