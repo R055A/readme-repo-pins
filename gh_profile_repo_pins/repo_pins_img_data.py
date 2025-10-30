@@ -54,22 +54,13 @@ class RepoPinImgData:
         )
 
     def __repr__(self) -> str:
-        archive_str = " archive" if self.is_archived else (" template" if self.is_template else "")
-        fork_str = "" if not self.is_fork else f"\nforked from {self.parent}"
-        desc_str = f"\ndescription: {self.description}" if self.description else ""
-        lang_str = (
-            f"\nprimary language: ({self.primary_language_color}) {self.primary_language_name}"
-            if self.primary_language_name
-            else ""
-        )
-        stars_str = f"\nstargazers: {self.stargazer_count}" if self.stargazer_count else ""
-        forks_str = f"\nforks: {self.fork_count}" if self.fork_count else ""
         return (
             f"name: {self.repo_name}\n"
-            f"type: Public{archive_str}"
-            f"{fork_str}"
-            f"{desc_str}"
-            f"{lang_str}"
-            f"{stars_str}"
-            f"{forks_str}"
+            f"type: Public{" archive" if self.is_archived else (" template" if self.is_template else "")}"
+            f"{"" if not self.is_fork else f"\nforked from {self.parent}"}"
+            f"{f"\ndescription: {self.description}" if self.description else ""}"
+            f"{f"\nprimary language: ({self.primary_language_color}) {self.primary_language_name}"
+            if self.primary_language_name else ""}"
+            f"{f"\nstargazers: {self.stargazer_count}" if self.stargazer_count else ""}"
+            f"{f"\nforks: {self.fork_count}" if self.fork_count else ""}"
         )

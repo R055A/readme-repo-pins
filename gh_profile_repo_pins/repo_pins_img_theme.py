@@ -33,7 +33,7 @@ class RepoPinImgTheme:
                     enums.RepoPinsImgThemeMode(t): ThemeSVG(**d) for t, d in v.items()
                 }
                 for k, v in load_themes().items()
-                if k in [m.value for m in enums.RepoPinsImgThemeName]
+                if k in enums.RepoPinsImgThemeName
             }
             if not svg_themes_db:
                 raise RepoPinImageThemeError(msg="No SVG themes are found.")
