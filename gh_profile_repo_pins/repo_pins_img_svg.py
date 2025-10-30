@@ -260,16 +260,56 @@ class RepoPinImg:
         return lines
 
     def __parent_repo(self):
-        pass  # TODO
+        if not (self.__repo_pin_data.is_fork and self.__repo_pin_data.parent):
+            return
+
+        repo_name_y: float = self.__PADDING + self.__NAME_SIZE
+        parent_font_size: float = 10 * self.__SCALE
+        parent_pad_y: float = round(2 * self.__SCALE)
+        parent_y: float = repo_name_y + parent_pad_y + parent_font_size
+
+        parent_text_prefix: str = "Forked from "
+        parent_text_value: str = f"{self.__repo_pin_data.parent}"
+        parent_url: str = f"https://github.com/{self.__repo_pin_data.parent}"
+
+        def _esc(t: str) -> str:
+            return (
+                t.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace('"', "&quot;")
+                .replace("'", "&apos;")
+            )
+
+        self.__svg_str += (
+            f'<a href="{parent_url}" target="_blank">'
+            f'<text '
+            f'x="{self.__PADDING}" '
+            f'y="{parent_y}" '
+            f'font-size="{parent_font_size}" '
+            f'fill="var(--text)" '
+            f'style="text-decoration: underline;"'
+            f'>'
+            f"{_esc(parent_text_prefix + parent_text_value)}"
+            f"</text>"
+            f"</a>"
+        )
+
+        # Store an internal offset for description placement
+        self.__parent_line_extra_y = parent_pad_y + parent_font_size
 
     def __description(self, repo_name_y: float, description_y: float) -> None:
+        # draw parent line if forked
+        self.__parent_line_extra_y = 0
         if self.__repo_pin_data.is_fork and self.__repo_pin_data.parent:
-            self.__parent_repo()  # TODO
+            self.__parent_repo()
 
         wrapped_description_lines: list[str] = self.__wrap_lines(
             max_width_px=(self.__WIDTH - 2 * self.__PADDING),
             area_height_px=max(
-                0.0, (description_y - self.__PADDING) - (repo_name_y + self.__PADDING)
+                0.0,
+                (description_y - self.__PADDING)
+                - (repo_name_y + self.__PADDING + self.__parent_line_extra_y),
             ),
         )
         for i, line in enumerate(wrapped_description_lines):
@@ -283,7 +323,7 @@ class RepoPinImg:
             self.__svg_str += (
                 f"<text "
                 f'x="{self.__PADDING}" '
-                f'y="{((repo_name_y + self.__PADDING) + self.__DESC_SIZE) + (i * self.__DESC_LINE_H):.2f}" '
+                f'y="{((repo_name_y + self.__PADDING + self.__parent_line_extra_y) + self.__DESC_SIZE) + (i * self.__DESC_LINE_H):.2f}" '
                 f'font-size="{self.__DESC_SIZE}" '
                 f'fill="var(--text)"'
                 f">"
