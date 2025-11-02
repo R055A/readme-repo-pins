@@ -39,10 +39,17 @@ class RepoPinImgData:
         )
         primary_language_dict = repo_data.get("primaryLanguage", {}) or {}
         bg_img = (
-            RepoPinImgMedia(**bg_img)
-            if isinstance(bg_img, dict)
-            else RepoPinImgMedia(img=bg_img)
-        ) if bg_img and isinstance(bg_img, dict) and bg_img.get("img") or isinstance(bg_img, str) else None
+            (
+                RepoPinImgMedia(**bg_img)
+                if isinstance(bg_img, dict)
+                else RepoPinImgMedia(img=bg_img)
+            )
+            if bg_img
+            and isinstance(bg_img, dict)
+            and bg_img.get("img")
+            or isinstance(bg_img, str)
+            else None
+        )
         return RepoPinImgData(
             repo_name=(
                 f"{repo_owner}/" if username.lower() != repo_owner.lower() else ""
@@ -59,7 +66,7 @@ class RepoPinImgData:
             is_template=repo_data.get("isTemplate", False) or False,
             is_archived=repo_data.get("isArchived", False) or False,
             theme=theme_name if theme_name else enums.RepoPinsImgThemeName.GITHUB_SOFT,
-            bg_img=bg_img
+            bg_img=bg_img,
         )
 
     def __repr__(self) -> str:

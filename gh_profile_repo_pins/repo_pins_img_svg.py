@@ -436,7 +436,7 @@ class RepoPinImg:
     def __bg_img(self) -> None:
         self.__repo_pin_data.bg_img.load()
         self.__svg_str += (
-            f'<image '
+            f"<image "
             f'href="{self.__repo_pin_data.bg_img.encoded_url}" '
             f'x="0" '
             f'y="0" '
@@ -448,7 +448,7 @@ class RepoPinImg:
                 else ""
             )} {self.__repo_pin_data.bg_img.mode.name.lower()}" '
             f'opacity="{self.__repo_pin_data.bg_img.opacity}" '
-            f'/>'
+            f"/>"
         )
 
     def __render_svg(self) -> None:
@@ -526,9 +526,14 @@ class RepoPinImg:
 
 
 def tst_svg_render(
-    test_theme_name: str = "github_soft", test_username: str = "R055A", test_bg_img: dict | str = None
+    test_theme_name: str = "github_soft",
+    test_username: str = "R055A",
+    test_bg_img: dict | str = None,
 ) -> None:
-    from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageThemeError,RepoPinImageMediaError
+    from gh_profile_repo_pins.repo_pins_exceptions import (
+        RepoPinImageThemeError,
+        RepoPinImageMediaError,
+    )
     from gh_profile_repo_pins.repo_pins_generate import GenerateRepoPins
     from gh_profile_repo_pins.utils import write_svg
 

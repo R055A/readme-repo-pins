@@ -37,12 +37,28 @@ class GenerateRepoPins:
                         )
                     ),
                     bg_img=(
-                        bg_img.get([j for j in bg_img.keys() if i.get("name") in j and j in i.get("url")][0])
+                        bg_img.get(
+                            [
+                                j
+                                for j in bg_img.keys()
+                                if i.get("name") in j and j in i.get("url")
+                            ][0]
+                        )
                         if isinstance(bg_img, dict)
-                        and bg_img
-                           .get([j for j in bg_img.keys() if i.get("name") in j and j in i.get("url")][0])
-                           .get("img")
-                        and any([j for j in bg_img.keys() if i.get("name") in j and j in i.get("url")])
+                        and bg_img.get(
+                            [
+                                j
+                                for j in bg_img.keys()
+                                if i.get("name") in j and j in i.get("url")
+                            ][0]
+                        ).get("img")
+                        and any(
+                            [
+                                j
+                                for j in bg_img.keys()
+                                if i.get("name") in j and j in i.get("url")
+                            ]
+                        )
                         else (
                             bg_img
                             if isinstance(bg_img, dict)

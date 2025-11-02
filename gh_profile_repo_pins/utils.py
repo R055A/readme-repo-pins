@@ -10,7 +10,9 @@ from sys import stdout
 from re import compile
 
 USERNAME: str = environ.get("GH_USERNAME", "")
-GH_API_TOKEN: str = environ.get("GH_API_TOKEN", "")  # use default fine-grain PAT if local &/or for increased rate limit
+GH_API_TOKEN: str = environ.get(
+    "GH_API_TOKEN", ""
+)  # use default fine-grain PAT if local &/or for increased rate limit
 
 # optional, can be a string (for all repos), or a dict (for individual repos) in the following format:
 # EITHER (dict):
@@ -70,8 +72,14 @@ def parse_bg_img(bg_img: str) -> dict | str | None:
         except (JSONDecodeError, TypeError):
             if len(bg_img) == 0:
                 bg_img = None
-            elif not isinstance(bg_img, str) or bg_img.startswith("{") or bg_img.startswith("}"):
-                raise AssertionError("The repo pin background img(s) url/filepath(s) must be correct dict/str format.")
+            elif (
+                not isinstance(bg_img, str)
+                or bg_img.startswith("{")
+                or bg_img.startswith("}")
+            ):
+                raise AssertionError(
+                    "The repo pin background img(s) url/filepath(s) must be correct dict/str format."
+                )
     return bg_img
 
 
@@ -221,7 +229,11 @@ def tst_svg_parse_args() -> tuple[str, str, dict | str]:
         help="Repository pin background image: dict | str. Default: None.",
     )
     args = parser.parse_args()
-    return args.theme.lower() if args.theme else args.theme, args.username, parse_bg_img(bg_img=args.img)
+    return (
+        args.theme.lower() if args.theme else args.theme,
+        args.username,
+        parse_bg_img(bg_img=args.img),
+    )
 
 
 def init_logger() -> Logger:
@@ -282,8 +294,7 @@ def get_md_grid_pin_str(file_num: int, repo_name: str, repo_url: str) -> str:
     if file_num % 2 == 0:
         grid_str += "\n"
     return (
-        grid_str
-        + f"[![{repo_name} pin img]({get_path()}/{file_num}.svg)]({repo_url}) "
+        grid_str + f"[![{repo_name} pin img]({get_path()}/{file_num}.svg)]({repo_url}) "
     )
 
 

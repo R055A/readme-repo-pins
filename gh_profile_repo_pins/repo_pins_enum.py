@@ -31,15 +31,33 @@ class RepoPinsImgMediaBgImgAlignY(Enum):
 
 
 class RepoPinsImgMediaBgImgAlign(Enum):
-    xMinYMin = RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMin.value
-    xMinYMid = RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMid.value
-    xMinYMax = RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMax.value
-    xMidYMin = RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMin.value
-    xMidYMid = RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMid.value
-    xMidYMax = RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMax.value
-    xMaxYMin = RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMin.value
-    xMaxYMid = RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMid.value
-    xMaxYMax = RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+    xMinYMin = (
+        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+    )
+    xMinYMid = (
+        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+    )
+    xMinYMax = (
+        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+    )
+    xMidYMin = (
+        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+    )
+    xMidYMid = (
+        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+    )
+    xMidYMax = (
+        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+    )
+    xMaxYMin = (
+        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+    )
+    xMaxYMid = (
+        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+    )
+    xMaxYMax = (
+        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+    )
 
 
 class RepoPinsImgMediaBgImgMode(Enum):
