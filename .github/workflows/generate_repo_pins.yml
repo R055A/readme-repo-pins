@@ -35,6 +35,8 @@ jobs:
         env:
           GH_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_USERNAME: ${{ secrets.GH_USERNAME || github.repository_owner }}
+          THEME: ${{ secrets.THEME }}
+          BG_IMG: ${{ secrets.BG_IMG }}
           NUM_REPO_PINS: ${{ secrets.NUM_REPO_PINS }}
           REPO_NAMES_EXCLUSIVE: ${{ secrets.REPO_NAMES_EXCLUSIVE }}
           IS_EXCLUDE_REPOS_OWNED: ${{ secrets.IS_EXCLUDE_REPOS_OWNED }}

@@ -14,3 +14,9 @@ class RepoPinImageThemeError(RepoPinsException):
 
     def __init__(self, msg: str):
         super().__init__(msg=msg)
+
+
+class RepoPinImageMediaError(RepoPinsException):
+
+    def __init__(self, msg: str):
+        super().__init__(msg=msg)

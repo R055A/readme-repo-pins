@@ -15,7 +15,11 @@ import gh_profile_repo_pins.repo_pins_enum as enums
 class GenerateRepoPins:
 
     def __init__(
-        self, repo_pins_data: list[dict], username: str, theme: str | dict
+        self,
+        repo_pins_data: list[dict[str, str | int | bool | dict[str, str]]],
+        username: str,
+        theme: str | dict,
+        bg_img: dict | str = None,
     ) -> None:
         self.update_themes()  # update the database with any new json themes not in enums.RepoPinsImgThemeName
         try:
@@ -30,6 +34,43 @@ class GenerateRepoPins:
                             enums.RepoPinsImgThemeName(theme)
                             if theme and not isinstance(theme, dict)
                             else None
+                        )
+                    ),
+                    bg_img=(
+                        bg_img.get(
+                            [
+                                j
+                                for j in bg_img.keys()
+                                if i.get("name") in j and j in i.get("url")
+                            ][0]
+                        )
+                        if isinstance(bg_img, dict)
+                        and bg_img.get(
+                            [
+                                j
+                                for j in bg_img.keys()
+                                if i.get("name") in j and j in i.get("url")
+                            ][0]
+                        ).get("img")
+                        and any(
+                            [
+                                j
+                                for j in bg_img.keys()
+                                if i.get("name") in j and j in i.get("url")
+                            ]
+                        )
+                        else (
+                            bg_img
+                            if isinstance(bg_img, dict)
+                            and not isinstance(list(bg_img.values())[0], dict)
+                            and bg_img.get("img")
+                            else (
+                                bg_img
+                                if not isinstance(bg_img, dict)
+                                and isinstance(bg_img, str)
+                                and len(bg_img) > 0
+                                else None
+                            )
                         )
                     ),
                 )

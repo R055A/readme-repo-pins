@@ -10,12 +10,50 @@ from sys import stdout
 from re import compile
 
 USERNAME: str = environ.get("GH_USERNAME", "")
-GH_API_TOKEN: str = environ.get("GH_API_TOKEN", "")
+GH_API_TOKEN: str = environ.get(
+    "GH_API_TOKEN", ""
+)  # use default fine-grain PAT if local &/or for increased rate limit
 
-# optional, can be a string (for all repos), or a dict (for individual repos)
+# optional, can be a string (for all repos), or a dict (for individual repos) in the following format:
+# EITHER (dict):
+#
+# {
+#     <owner/repo>: theme_name (matching any key in themes.json),
+# }
+#
+# OR (str):
+#
+# theme_name (matching any key in themes.json)
 THEME: str = environ.get("THEME", "")
 
-# optional, an exclusive list of repos (owner/repo separated by commas) with high priority over other optional configs
+# optional, can be dict[dict] for individual pin imgs, or dict or single url/file path str if one img for all pins:
+# EITHER (dict[dict]):
+#
+# {
+#     <owner/repo>: (not required if one image is being used for all pins, otherwise required for individual pins):
+#     {
+#         img: url_or_path (required),
+#         align: any val in enums.RepoPinsImgMediaBgImgAlign (optional),
+#         mode: any val in enums.RepoPinsImgMediaBgImgMode (optional),
+#         opacity: a float value between 0.0 and 1.0 (optional),
+#     },
+# }
+#
+# OR (dict):
+#
+# {
+#     img: url_or_path (required),
+#     align: any val in enums.RepoPinsImgMediaBgImgAlign (optional),
+#     mode: any val in enums.RepoPinsImgMediaBgImgMode (optional),
+#     opacity: a float value between 0.0 and 1.0 (optional),
+# },
+#
+# OR (str):
+#
+# url_or_path (required, default options)
+BG_IMG: str = environ.get("BG_IMG", "")
+
+# optional, an exclusive list of repos separated by commas (owner/repo,owner/repo,...,owner/repo)
 REPO_NAMES_EXCLUSIVE: str = environ.get("REPO_NAMES_EXCLUSIVE", "")
 
 # optional configs, overrule REPO_NAMES_EXCLUSIVE if not null, otherwise overruled by REPO_NAMES_EXCLUSIVE (default)
@@ -27,9 +65,27 @@ IS_EXCLUDE_REPOS_OWNED: str = environ.get("IS_EXCLUDE_REPOS_OWNED", "")
 IS_EXCLUDE_REPOS_CONTRIBUTED: str = environ.get("IS_EXCLUDE_REPOS_CONTRIBUTED", "")
 
 
-def parse_args() -> tuple[str, str, str, str | dict, int, str, bool, bool]:
+def parse_bg_img(bg_img: str) -> dict | str | None:
+    if bg_img:
+        try:
+            bg_img = loads(s=bg_img)
+        except (JSONDecodeError, TypeError):
+            if len(bg_img) == 0:
+                bg_img = None
+            elif (
+                not isinstance(bg_img, str)
+                or bg_img.startswith("{")
+                or bg_img.startswith("}")
+            ):
+                raise AssertionError(
+                    "The repo pin background img(s) url/filepath(s) must be correct dict/str format."
+                )
+    return bg_img
+
+
+def parse_args() -> tuple[str, str, str, str | dict, dict | str, int, str, bool, bool]:
     parser = ArgumentParser(
-        description="GitHub API-fetch pinned/popular repositories for a given username"
+        description="GitHub API-fetch pinned/popular/contributed/select/etc repositories for a given username"
     )
     parser.add_argument(
         "--token", type=str, default=GH_API_TOKEN, help="A GitHub API token."
@@ -60,6 +116,14 @@ def parse_args() -> tuple[str, str, str, str | dict, int, str, bool, bool]:
         default=THEME if THEME and len(THEME) > 0 else None,
         help=(
             "Repository pin image theme for all: 'theme'; or individual: {'repo': 'theme'}. Default: 'GitHub' theme."
+        ),
+    )
+    parser.add_argument(
+        "--img",
+        type=str,
+        default=BG_IMG if BG_IMG and len(BG_IMG) > 0 else None,
+        help=(
+            "Repository pin background image for all: dict | str; or individual: dict[dict]. Default: None."
         ),
     )
     parser.add_argument(
@@ -136,6 +200,7 @@ def parse_args() -> tuple[str, str, str, str | dict, int, str, bool, bool]:
         args.username,
         args.repos,
         args.theme,
+        parse_bg_img(bg_img=args.img),
         args.pins,
         args.order,
         args.not_owned,
@@ -143,7 +208,7 @@ def parse_args() -> tuple[str, str, str, str | dict, int, str, bool, bool]:
     )
 
 
-def tst_svg_parse_args() -> tuple[str, str]:
+def tst_svg_parse_args() -> tuple[str, str, dict | str]:
     parser = ArgumentParser(description="Local test pin themes and SVG rendering.")
     parser.add_argument(
         "--theme",
@@ -157,8 +222,18 @@ def tst_svg_parse_args() -> tuple[str, str]:
         default="R055A",
         help="A GitHub account username.",
     )
+    parser.add_argument(
+        "--img",
+        type=str,
+        default=None,
+        help="Repository pin background image: dict | str. Default: None.",
+    )
     args = parser.parse_args()
-    return args.theme.lower() if args.theme else args.theme, args.username
+    return (
+        args.theme.lower() if args.theme else args.theme,
+        args.username,
+        parse_bg_img(bg_img=args.img),
+    )
 
 
 def init_logger() -> Logger:
@@ -177,19 +252,24 @@ def set_git_creds(user_name: str, user_id: int) -> None:
             gh_env_file.write(f"GH_USER_ID={user_id}\n")
 
 
-def get_dir_path() -> str:
-    if not Path("files").exists():
-        return "../files"
-    return "files"
+def get_path(path_str: str = "files") -> str:
+    if not Path(path_str).exists():
+        return f"../{path_str}"
+    return path_str
 
 
 def load_themes() -> dict[str, dict[str, dict[str, str]]]:
-    with open(file=f"{get_dir_path()}/themes.json", mode="r") as themes_file:
+    with open(file=f"{get_path()}/themes.json", mode="r") as themes_file:
         return load(themes_file)
 
 
+def load_img(img_path: str) -> bytes | None:
+    with open(file=get_path(path_str=img_path), mode="rb") as img_file:
+        return img_file.read()
+
+
 def del_imgs() -> None:
-    dir_name: str = get_dir_path()
+    dir_name: str = get_path()
     for filename in listdir(path=dir_name):
         file_path = path.join(dir_name, filename)
         if (
@@ -204,7 +284,7 @@ def del_imgs() -> None:
 
 def write_svg(svg_obj_str: str, file_name: str) -> None:
     with open(
-        file=f"{get_dir_path()}/{file_name}.svg", mode="w", encoding="utf-8"
+        file=f"{get_path()}/{file_name}.svg", mode="w", encoding="utf-8"
     ) as svg_file:
         svg_file.write(svg_obj_str)
 
@@ -214,8 +294,7 @@ def get_md_grid_pin_str(file_num: int, repo_name: str, repo_url: str) -> str:
     if file_num % 2 == 0:
         grid_str += "\n"
     return (
-        grid_str
-        + f"[![{repo_name} pin img]({get_dir_path()}/{file_num}.svg)]({repo_url}) "
+        grid_str + f"[![{repo_name} pin img]({get_path()}/{file_num}.svg)]({repo_url}) "
     )
 
 
@@ -225,7 +304,7 @@ def get_html_grid_pin_str(file_num: int) -> str:
         grid_str += "\n"
     return (
         grid_str
-        + f'<object type="image/svg+xml" data="{get_dir_path()}/{file_num}.svg"></object> '
+        + f'<object type="image/svg+xml" data="{get_path()}/{file_num}.svg"></object> '
     )
 
 

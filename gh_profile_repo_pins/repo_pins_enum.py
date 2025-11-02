@@ -10,6 +10,62 @@ class RepositoryOrderFieldEnum(Enum):
     PUSHED_AT = "pushedAt"
 
 
+class RepoPinsImgMediaBgImgMime(Enum):
+    PNG = "image/png"
+    JPG = "image/jpeg"
+    SVG = "image/svg+xml"
+    GIF = "image/gif"
+    WEB = "image/webp"
+
+
+class RepoPinsImgMediaBgImgAlignX(Enum):
+    xMin = "xmin"
+    xMid = "xmid"
+    xMax = "xmax"
+
+
+class RepoPinsImgMediaBgImgAlignY(Enum):
+    YMin = "ymin"
+    YMid = "ymid"
+    YMax = "ymax"
+
+
+class RepoPinsImgMediaBgImgAlign(Enum):
+    xMinYMin = (
+        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+    )
+    xMinYMid = (
+        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+    )
+    xMinYMax = (
+        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+    )
+    xMidYMin = (
+        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+    )
+    xMidYMid = (
+        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+    )
+    xMidYMax = (
+        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+    )
+    xMaxYMin = (
+        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+    )
+    xMaxYMid = (
+        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+    )
+    xMaxYMax = (
+        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+    )
+
+
+class RepoPinsImgMediaBgImgMode(Enum):
+    SLICE = "cover"
+    MEET = "contain"
+    NONE = "stretch"
+
+
 class RepoPinsImgThemeName(Enum):
     GITHUB = "github"
     GITHUB_SOFT = "github_soft"

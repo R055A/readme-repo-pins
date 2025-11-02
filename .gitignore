@@ -1,5 +1,5 @@
 # test imgs
-files/-*
+files/-*.svg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -15,6 +15,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
+
 dist/
 downloads/
 eggs/
