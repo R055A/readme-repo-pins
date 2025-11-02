@@ -5,6 +5,7 @@ from PIL import Image as im, ImageOps as im_ops
 from requests import get, Response, HTTPError
 from urllib.parse import urlparse
 from base64 import b64encode
+from cairosvg import svg2png
 from io import BytesIO
 
 
@@ -42,7 +43,9 @@ class RepoPinImgMedia:
             else enums.RepoPinsImgMediaBgImgMode(self.__DEFAULT_MODE.lower())
         )
         self.__bg_img_opacity: float = (
-            opacity if opacity is not None and 0.0 <= opacity <= 1.0 else self.__DEFAULT_OPACITY
+            opacity
+            if opacity is not None and 0.0 <= opacity <= 1.0
+            else self.__DEFAULT_OPACITY
         )
         self.__bg_img_encoded_url: str | None = None
 
@@ -56,14 +59,23 @@ class RepoPinImgMedia:
         )
 
     def __is_img_url(self) -> bool:
-        return not not urlparse(url=self.__bg_img).scheme
+        return bool(urlparse(url=self.__bg_img).scheme)
 
-    def __format_encoded_img(self, raw_img: bytes) -> bytes:
-        self.__bg_img_mime = enums.RepoPinsImgMediaBgImgMime.WEB
+    def __decode_img(self, byte_img: bytes) -> im.Image:
+        if self.__bg_img_mime == enums.RepoPinsImgMediaBgImgMime.SVG:
+            raw_conversion: BytesIO = BytesIO()
+            svg2png(bytestring=byte_img, write_to=raw_conversion)
+            raw_conversion.seek(0)
+            return im.open(fp=raw_conversion)
+        return im.open(fp=BytesIO(initial_bytes=byte_img))
+
+    def __format_encoded_img(self, byte_img: bytes) -> bytes:
         img_encoder: im.Image = im_ops.exif_transpose(
-            image=im.open(fp=BytesIO(initial_bytes=raw_img))
+            image=self.__decode_img(byte_img=byte_img)
         )
         img_encoder.thumbnail(size=(self.__IMG_DIMS, self.__IMG_DIMS))
+
+        self.__bg_img_mime = enums.RepoPinsImgMediaBgImgMime.WEB
         encoded_img: BytesIO = BytesIO()
         img_encoder.save(
             fp=encoded_img,
@@ -91,7 +103,7 @@ class RepoPinImgMedia:
         )
         self.__set_encoded_url(
             encoded_url=b64encode(
-                s=self.__format_encoded_img(raw_img=res.content)
+                s=self.__format_encoded_img(byte_img=res.content)
             ).decode(encoding=self.__BASE_64_ENCODING)
         )
 
@@ -116,7 +128,7 @@ class RepoPinImgMedia:
             raise RepoPinImageMediaError(msg="Background image file not found.")
         self.__set_encoded_url(
             encoded_url=b64encode(
-                s=self.__format_encoded_img(raw_img=self.__bg_img)
+                s=self.__format_encoded_img(byte_img=self.__bg_img)
             ).decode(encoding=self.__BASE_64_ENCODING)
         )
 
