@@ -42,7 +42,7 @@ class RepoPinImgMedia:
             else enums.RepoPinsImgMediaBgImgMode(self.__DEFAULT_MODE.lower())
         )
         self.__bg_img_opacity: float = (
-            opacity if opacity and 0 <= opacity <= 100 else self.__DEFAULT_OPACITY
+            opacity if opacity is not None and 0.0 <= opacity <= 1.0 else self.__DEFAULT_OPACITY
         )
         self.__bg_img_encoded_url: str | None = None
 
