@@ -2,9 +2,9 @@
 
 Welcome. Thank you for taking an interest in this project.
 
-## 1 for 1
+## 1 to 1
 
-There can only be 1 Pull Request for 1 Issue, and 1 Issue for 1 Pull Request.
+There can only be 1 Pull Request for each Issue, and 1 Issue for each Pull Request.
 
 An Issue must be for 1 task and, thus, a Pull Request must be for 1 task.
 
