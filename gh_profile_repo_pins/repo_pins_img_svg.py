@@ -433,6 +433,24 @@ class RepoPinImg:
             icon_y_adj=0.0,
         )
 
+    def __bg_img(self) -> None:
+        self.__repo_pin_data.bg_img.load()
+        self.__svg_str += (
+            f'<image '
+            f'href="{self.__repo_pin_data.bg_img.encoded_url}" '
+            f'x="0" '
+            f'y="0" '
+            f'width="{self.__WIDTH}" '
+            f'height="{self.__HEIGHT}" '
+            f'preserveAspectRatio="{(
+                self.__repo_pin_data.bg_img.align.name 
+                if self.__repo_pin_data.bg_img.mode != enums.RepoPinsImgMediaBgImgMode.NONE 
+                else ""
+            )} {self.__repo_pin_data.bg_img.mode.name.lower()}" '
+            f'opacity="{self.__repo_pin_data.bg_img.opacity}" '
+            f'/>'
+        )
+
     def __render_svg(self) -> None:
         repo_name_y: float = self.__PADDING + self.__NAME_SIZE
         footer_h: float = max((13 * self.__SCALE), self.__META_SIZE)
@@ -474,7 +492,8 @@ class RepoPinImg:
                 size=14 * self.__SCALE,
             )}
         """
-
+        if self.__repo_pin_data.bg_img:
+            self.__bg_img()
         self.__header(repo_name_y=repo_name_y)
         self.__description(repo_name_y=repo_name_y, description_y=description_y)
         self.__footer(footer_y=footer_y, footer_top=description_y, footer_h=footer_h)
@@ -507,9 +526,9 @@ class RepoPinImg:
 
 
 def tst_svg_render(
-    test_theme_name: str = "github_soft", test_username: str = "R055A"
+    test_theme_name: str = "github_soft", test_username: str = "R055A", test_bg_img: dict | str = None
 ) -> None:
-    from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageThemeError
+    from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageThemeError,RepoPinImageMediaError
     from gh_profile_repo_pins.repo_pins_generate import GenerateRepoPins
     from gh_profile_repo_pins.utils import write_svg
 
@@ -570,6 +589,7 @@ def tst_svg_render(
                 repo_data=tst_repo_data,
                 username=test_username,
                 theme_name=enums.RepoPinsImgThemeName(test_theme_name),
+                bg_img=test_bg_img,
             )
             repo_pin_img: RepoPinImg = RepoPinImg(repo_pin_data=repo_pin)
             repo_pin_img.render()
@@ -578,11 +598,14 @@ def tst_svg_render(
         print(
             f"Theme '{test_theme_name}' is either not in themes.json or GenerateRepoPins.update_themes() is not used."
         )
-    except RepoPinImageThemeError as err:
+    except (RepoPinImageThemeError, RepoPinImageMediaError) as err:
         print(err.msg)
 
 
 if __name__ == "__main__":
     from gh_profile_repo_pins.utils import tst_svg_parse_args
 
-    tst_svg_render(*tst_svg_parse_args())
+    try:
+        tst_svg_render(*tst_svg_parse_args())
+    except AssertionError as e:
+        print(f"Error: {str(e)}")

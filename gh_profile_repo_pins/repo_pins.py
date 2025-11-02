@@ -1,6 +1,7 @@
 from gh_profile_repo_pins.repo_pins_exceptions import (
     GitHubGraphQlClientError,
     RepoPinImageThemeError,
+    RepoPinImageMediaError,
 )
 from gh_profile_repo_pins.repo_pins_api_client import GitHubGraphQlClient
 from gh_profile_repo_pins.utils import set_git_creds, init_logger, Logger
@@ -22,6 +23,7 @@ class ReadMeRepoPins:
         username: str = None,
         repo_names_exclusive: str = None,
         theme: str | dict = None,
+        bg_img: dict | str = None,
         max_num_pins: int = None,
         repo_priority_order: str = None,
         is_exclude_repos_owned: bool = False,
@@ -42,6 +44,7 @@ class ReadMeRepoPins:
         )
         self.__repo_pins: list[dict] = list()
         self.__theme: str | dict = theme
+        self.__bg_img: dict | str | None = bg_img
 
         # optional, exclusive list of repos with high priority over other optional configs
         self.__repo_names_exclusive: list[str] = (
@@ -125,6 +128,7 @@ class ReadMeRepoPins:
             repo_pins_data=self.__repo_pins,
             username=self.__gh_api_client.user_name,
             theme=self.__theme,
+            bg_img=self.__bg_img,
         )
         gen_repo_pins.grid_display()
 
@@ -179,6 +183,6 @@ class ReadMeRepoPins:
 
         try:
             self.__generate_readme_pin_grid_display()
-        except RepoPinImageThemeError as err:
+        except (RepoPinImageThemeError, RepoPinImageMediaError) as err:
             self.__log.error(msg=err.msg)
             exit(1)
