@@ -70,6 +70,7 @@ class RepoPinsImgThemeName(Enum):
     GITHUB = "github"
     GITHUB_SOFT = "github_soft"
     BG_IMG_CONTRAST = "bg_img_contrast"
+    DRACULA = "dracula"
 
 
 class RepoPinsImgThemeMode(Enum):
