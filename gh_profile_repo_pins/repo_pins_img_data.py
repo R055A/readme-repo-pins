@@ -1,3 +1,4 @@
+from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageMediaError
 from gh_profile_repo_pins.repo_pins_img_media import RepoPinImgMedia
 import gh_profile_repo_pins.repo_pins_enum as enums
 from dataclasses import dataclass
@@ -38,20 +39,25 @@ class RepoPinImgData:
             else None
         )
         primary_language_dict = repo_data.get("primaryLanguage", {}) or {}
-        bg_img = (
-            (
-                RepoPinImgMedia(**bg_img)
-                if isinstance(bg_img, dict)
-                else RepoPinImgMedia(img=bg_img)
+
+        try:
+            bg_img = (
+                (
+                    RepoPinImgMedia(**bg_img)
+                    if isinstance(bg_img, dict)
+                    else RepoPinImgMedia(img=bg_img)
+                )
+                if bg_img
+                   and (
+                       isinstance(bg_img, dict)
+                       and bg_img.get("img")
+                       or isinstance(bg_img, str)
+                   )
+                else None
             )
-            if bg_img
-            and (
-                isinstance(bg_img, dict)
-                and bg_img.get("img")
-                or isinstance(bg_img, str)
-            )
-            else None
-        )
+        except ValueError as err:
+            raise RepoPinImageMediaError(msg=f"Background image error: {str(err)}")
+
         return RepoPinImgData(
             repo_name=(
                 f"{repo_owner}/" if username.lower() != repo_owner.lower() else ""
