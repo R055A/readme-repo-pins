@@ -22,6 +22,24 @@ class GenerateRepoPins:
         bg_img: dict | str = None,
     ) -> None:
         self.update_themes()  # update the database with any new json themes not in enums.RepoPinsImgThemeName
+
+        def get_repo_bg_img_data(img_data: dict | str | None, repo_data_i: dict) -> dict | str | None:
+            if img_data and isinstance(img_data, dict):
+                repo_img_key: list[str] = [
+                    k for k in img_data.keys() if repo_data_i.get("name") in k and k in (repo_data_i.get("url") or "")
+                ]
+                if (
+                        repo_img_key
+                        and isinstance(img_data.get(repo_img_key[0]), dict)
+                        and img_data.get(repo_img_key[0]).get("img")
+                ):
+                    return img_data.get(repo_img_key[0])
+                elif not isinstance(list(img_data.values())[0], dict) and img_data.get("img"):
+                    return img_data.get("img")
+            elif img_data and isinstance(img_data, str):
+                return img_data
+            return None
+
         try:
             self.__repo_pins: list[RepoPinImgData] = [
                 RepoPinImgData.format_repo_pin_data(
@@ -36,43 +54,7 @@ class GenerateRepoPins:
                             else None
                         )
                     ),
-                    bg_img=(
-                        bg_img.get(
-                            [
-                                j
-                                for j in bg_img.keys()
-                                if i.get("name") in j and j in i.get("url")
-                            ][0]
-                        )
-                        if isinstance(bg_img, dict)
-                        and bg_img.get(
-                            [
-                                j
-                                for j in bg_img.keys()
-                                if i.get("name") in j and j in i.get("url")
-                            ][0]
-                        ).get("img")
-                        and any(
-                            [
-                                j
-                                for j in bg_img.keys()
-                                if i.get("name") in j and j in i.get("url")
-                            ]
-                        )
-                        else (
-                            bg_img
-                            if isinstance(bg_img, dict)
-                            and not isinstance(list(bg_img.values())[0], dict)
-                            and bg_img.get("img")
-                            else (
-                                bg_img
-                                if not isinstance(bg_img, dict)
-                                and isinstance(bg_img, str)
-                                and len(bg_img) > 0
-                                else None
-                            )
-                        )
-                    ),
+                    bg_img=get_repo_bg_img_data(img_data=bg_img, repo_data_i=i),
                 )
                 for i in repo_pins_data
             ]
