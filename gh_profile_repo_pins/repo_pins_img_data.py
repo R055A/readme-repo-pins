@@ -73,7 +73,15 @@ class RepoPinImgData:
             parent=repo_parent,
             is_template=repo_data.get("isTemplate", False) or False,
             is_archived=repo_data.get("isArchived", False) or False,
-            theme=theme_name if theme_name else enums.RepoPinsImgThemeName.GITHUB_SOFT,
+            theme=(
+                theme_name
+                if theme_name
+                else (
+                    enums.RepoPinsImgThemeName.BG_IMG_CONTRAST
+                    if bg_img
+                    else enums.RepoPinsImgThemeName.GITHUB_SOFT
+                )
+            ),
             bg_img=bg_img,
         )
 
