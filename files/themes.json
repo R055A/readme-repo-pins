@@ -46,5 +46,21 @@
       "link": "#bd93f9",
       "danger": "#ff5555"
     }
+  },
+  "bg_img_contrast": {
+    "light": {
+      "canvas": "#ffffff",
+      "border": "#dadce0",
+      "text": "#202124",
+      "link": "#0969da",
+      "danger": "#ff6b6b"
+    },
+    "dark": {
+      "canvas": "#212830",
+      "border": "#3a3a3a",
+      "text": "#e4e6eb",
+      "link": "#58a6ff",
+      "danger": "#ff6b6b"
+    }
   }
 }
