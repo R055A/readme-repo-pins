@@ -14,6 +14,9 @@ import gh_profile_repo_pins.repo_pins_enum as enums
 
 class GenerateRepoPins:
 
+    __REPO_NAME_KEY: str = "name"
+    __REPO_URL_KEY: str = "url"
+
     def __init__(
         self,
         repo_pins_data: list[dict[str, str | int | bool | dict[str, str]]],
@@ -23,38 +26,13 @@ class GenerateRepoPins:
     ) -> None:
         self.update_themes()  # update the database with any new json themes not in enums.RepoPinsImgThemeName
 
-        def get_repo_bg_img_data(img_data: dict | str | None, repo_data_i: dict) -> dict | str | None:
-            if img_data and isinstance(img_data, dict):
-                repo_img_key: list[str] = [
-                    k for k in img_data.keys() if repo_data_i.get("name") in k and k in (repo_data_i.get("url") or "")
-                ]
-                if (
-                        repo_img_key
-                        and isinstance(img_data.get(repo_img_key[0]), dict)
-                        and img_data.get(repo_img_key[0]).get("img")
-                ):
-                    return img_data.get(repo_img_key[0])
-                elif not isinstance(list(img_data.values())[0], dict) and img_data.get("img"):
-                    return img_data.get("img")
-            elif img_data and isinstance(img_data, str):
-                return img_data
-            return None
-
         try:
             self.__repo_pins: list[RepoPinImgData] = [
                 RepoPinImgData.format_repo_pin_data(
                     repo_data=i,
                     username=username,
-                    theme_name=(
-                        enums.RepoPinsImgThemeName(theme[i.get("name")])
-                        if isinstance(theme, dict) and i.get("name") in theme
-                        else (
-                            enums.RepoPinsImgThemeName(theme)
-                            if theme and not isinstance(theme, dict)
-                            else None
-                        )
-                    ),
-                    bg_img=get_repo_bg_img_data(img_data=bg_img, repo_data_i=i),
+                    theme_name=self.__get_repo_theme_data(theme=theme, repo_data_i=i),
+                    bg_img=self.__get_repo_bg_img_data(bg_img=bg_img, repo_data_i=i),
                 )
                 for i in repo_pins_data
             ]
@@ -62,6 +40,38 @@ class GenerateRepoPins:
             raise RepoPinImageThemeError(
                 msg=f"Theme '{theme}' is either not in themes.json or the database is not updated with the json data."
             )
+
+    def __get_repo_data_key(self, repo_data: dict | str | None, repo_data_i: dict) -> str | None:
+        if repo_data and isinstance(repo_data, dict):
+            repo_img_key: list[str] = [
+                k for k in repo_data.keys()
+                if repo_data_i.get(self.__REPO_NAME_KEY) in k and k in (repo_data_i.get(self.__REPO_URL_KEY) or "")
+            ]
+            return repo_img_key[0] if repo_img_key else None
+        return None
+
+    def __get_repo_theme_data(self, theme: dict | str | None, repo_data_i: dict) -> enums.RepoPinsImgThemeName | None:
+        repo_theme_key: str | None = self.__get_repo_data_key(repo_data=theme, repo_data_i=repo_data_i)
+        if theme and repo_theme_key:
+            return enums.RepoPinsImgThemeName(theme[repo_theme_key])
+        elif theme and not isinstance(theme, dict):
+            return enums.RepoPinsImgThemeName(theme)
+        return None
+
+    def __get_repo_bg_img_data(self, bg_img: dict | str | None, repo_data_i: dict) -> dict | str | None:
+        if bg_img and isinstance(bg_img, dict):
+            repo_img_key: str | None = self.__get_repo_data_key(repo_data=bg_img, repo_data_i=repo_data_i)
+            if (
+                    repo_img_key
+                    and isinstance(bg_img.get(repo_img_key), dict)
+                    and bg_img.get(repo_img_key).get("img")
+            ):
+                return bg_img.get(repo_img_key)
+            elif list(bg_img.values()) and not isinstance(list(bg_img.values())[0], dict) and bg_img.get("img"):
+                return bg_img.get("img")
+        elif bg_img and isinstance(bg_img, str):
+            return bg_img
+        return None
 
     def __render_repo_pin_imgs(self) -> None:
         del_imgs()
