@@ -67,7 +67,7 @@ class GenerateRepoPins:
                     and bg_img.get(repo_img_key).get("img")
             ):
                 return bg_img.get(repo_img_key)
-            elif list(bg_img.values()) and not isinstance(list(bg_img.values())[0], dict) and bg_img.get("img"):
+            elif bg_img.values() and not isinstance(list(bg_img.values())[0], dict) and bg_img.get("img"):
                 return bg_img.get("img")
         elif bg_img and isinstance(bg_img, str):
             return bg_img
