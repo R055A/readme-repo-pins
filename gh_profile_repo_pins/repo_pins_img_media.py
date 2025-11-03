@@ -12,7 +12,7 @@ from io import BytesIO
 class RepoPinImgMedia:
 
     __DEFAULT_ALIGN: str = "xMidYMid"
-    __DEFAULT_MODE: str = "cover"
+    __DEFAULT_MODE: str = "stretch"
     __DEFAULT_OPACITY: float = 0.2
 
     __BASE_64_ENCODING: str = "ascii"
