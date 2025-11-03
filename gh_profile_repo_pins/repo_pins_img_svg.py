@@ -443,7 +443,7 @@ class RepoPinImg:
             f'width="{self.__WIDTH}" '
             f'height="{self.__HEIGHT}" '
             f'preserveAspectRatio="{(
-                f"{self.__repo_pin_data.bg_img.align.name} " 
+                self.__repo_pin_data.bg_img.align.name + " "
                 if self.__repo_pin_data.bg_img.mode != enums.RepoPinsImgMediaBgImgMode.NONE 
                 else ""
             )}{self.__repo_pin_data.bg_img.mode.name.lower()}" '
