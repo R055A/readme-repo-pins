@@ -380,7 +380,7 @@ class RepoPinImg:
             f"{self.__render_icon(
                 path_d=stats_icon, 
                 x=footer_x,
-                y=footer_y - footer_h * 0.85, 
+                y=footer_y - footer_h * 0.85,
                 size=self.__META_SIZE,
             )}"
             f"<text "
