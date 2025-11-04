@@ -13,7 +13,7 @@ class RepoPinImgMedia:
 
     __DEFAULT_ALIGN: str = "xMidYMid"
     __DEFAULT_MODE: str = "stretch"
-    __DEFAULT_OPACITY: float = 0.2
+    __DEFAULT_OPACITY: float = 0.25
 
     __BASE_64_ENCODING: str = "ascii"
     __RES_MIME_HEADER: str = "Content-Type"

@@ -45,7 +45,8 @@ class GenerateRepoPins:
         if repo_data and isinstance(repo_data, dict):
             repo_img_key: list[str] = [
                 k for k in repo_data.keys()
-                if repo_data_i.get(self.__REPO_NAME_KEY) in k and k in (repo_data_i.get(self.__REPO_URL_KEY) or "")
+                if repo_data_i.get(self.__REPO_NAME_KEY).lower() in k.lower()
+                and k.lower() in (repo_data_i.get(self.__REPO_URL_KEY) or "").lower()
             ]
             return repo_img_key[0] if repo_img_key else None
         return None

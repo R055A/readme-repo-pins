@@ -12,7 +12,7 @@ import gh_profile_repo_pins.repo_pins_enum as enums
 class ReadMeRepoPins:
 
     __DEFAULT_MAX_NUM_PINS: int = 6
-    __LIMIT_MAX_NUM_PINS: int = 100
+    __LIMIT_MAX_NUM_PINS: int = 20
     __DEFAULT_ORDER_FIELD: enums.RepositoryOrderFieldEnum = (
         enums.RepositoryOrderFieldEnum.STARGAZERS
     )
@@ -94,7 +94,7 @@ class ReadMeRepoPins:
             repo
             for repo in self.__repo_pins
             for explicit_repo in self.__repo_names_exclusive
-            if repo.get("url")
+            if repo.get("url") and repo.get("url")
             .strip()
             .rstrip("/")
             .lower()
@@ -126,7 +126,7 @@ class ReadMeRepoPins:
     def __generate_readme_pin_grid_display(self) -> None:
         gen_repo_pins: GenerateRepoPins = GenerateRepoPins(
             repo_pins_data=self.__repo_pins,
-            username=self.__gh_api_client.user_name,
+            username=self.__gh_api_client.username,
             theme=self.__theme,
             bg_img=self.__bg_img,
         )
@@ -139,7 +139,7 @@ class ReadMeRepoPins:
                     if not any(
                         [
                             d["url"].lower().endswith(owner_repo.lower())
-                            for d in self.__repo_pins
+                            for d in self.__repo_pins if d.get("url")
                         ]
                     ):
                         owner, repo = owner_repo.split("/")

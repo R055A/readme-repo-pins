@@ -153,7 +153,7 @@ class RepoPinImg:
             badge_w: float,
             badge_txt: str
     ) -> None:
-        badge_h: float = round(font_size + round(3 * self.__SCALE) * 2)
+        badge_h: float = round(font_size + self.__ROUNDING * 1.1)
         badge_x: float = min(
             repo_name_x
             + self.__measure(txt=display_name, font_px=self.__NAME_SIZE)
@@ -499,7 +499,7 @@ class RepoPinImg:
             {self.__render_icon(
                 path_d=self.__ICON_REPO, 
                 x=self.__PADDING, 
-                y=header_y - (self.__NAME_SIZE * 0.8),
+                y=header_y - (self.__NAME_SIZE * 0.85),
                 size=self.__PADDING,
             )}
         """
