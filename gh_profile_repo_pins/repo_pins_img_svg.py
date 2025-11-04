@@ -136,7 +136,7 @@ class RepoPinImg:
         owner_repo: list[str] = display_name.split(sep="/", maxsplit=1)
         if len(owner_repo) > 1:
             self.__svg_str += f'<tspan font-weight="500">{owner_repo[0]}/</tspan>'
-        self.__svg_str += f'<tspan font-weight="650">{owner_repo[-1]}</tspan>'
+        self.__svg_str += f'<tspan font-weight="700">{owner_repo[-1]}</tspan>'
         self.__svg_str += "</text></a>"
 
         return name_x, display_name
