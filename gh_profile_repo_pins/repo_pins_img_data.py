@@ -48,11 +48,11 @@ class RepoPinImgData:
                     else RepoPinImgMedia(img=bg_img)
                 )
                 if bg_img
-                   and (
-                       isinstance(bg_img, dict)
-                       and bg_img.get("img")
-                       or isinstance(bg_img, str)
-                   )
+                and (
+                    isinstance(bg_img, dict)
+                    and bg_img.get("img")
+                    or isinstance(bg_img, str)
+                )
                 else None
             )
         except ValueError as err:

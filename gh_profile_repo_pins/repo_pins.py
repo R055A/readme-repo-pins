@@ -94,7 +94,8 @@ class ReadMeRepoPins:
             repo
             for repo in self.__repo_pins
             for explicit_repo in self.__repo_names_exclusive
-            if repo.get("url") and repo.get("url")
+            if repo.get("url")
+            and repo.get("url")
             .strip()
             .rstrip("/")
             .lower()
@@ -139,7 +140,8 @@ class ReadMeRepoPins:
                     if not any(
                         [
                             d["url"].lower().endswith(owner_repo.lower())
-                            for d in self.__repo_pins if d.get("url")
+                            for d in self.__repo_pins
+                            if d.get("url")
                         ]
                     ):
                         owner, repo = owner_repo.split("/")
