@@ -42,7 +42,7 @@ where:
 * `owner/repo` matches the owner/repository names in the URL of a given repository - required `<>`
 * `theme_name` matches any key in `files/themes.json`. If a theme is unavailable, you can add it to `files/themes.json` - required `<>`
 
-> the default `theme` is `github_soft`
+> the default `THEME` is `github_soft`
 
 ### Background Image
 
@@ -73,9 +73,9 @@ where:
 * `mode` is any [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit) property value in `[cover, contain, stretch]` - optional `[]` (default `stretch`)
 * `opacity` is a float value between `0` and `1.0` - optional `[]` (default `0.25`)
 
-> the default `bg_img` is `None` (defaulting to the `theme` background color)
+> the default `BG_IMG` is `None` (which defaults to the `THEME` background color)
 
-### REPO_NAMES_EXCLUSIVE
+### Repository List
 
 The optional `REPO_NAMES_EXCLUSIVE` configuration controls the exclusive generation of pins for a given list of repository names.
 
@@ -89,7 +89,7 @@ where:
 * `owner/repo` matches the owner/repository names in the URL of a given repository - required `<>`
 * `<owner/repo>,...,<owner/repo>` is a list of any number of `owner/repo` separated by commas `,`
 
-### GH_API_TOKEN
+### API Token
 
 The optional `GH_API_TOKEN` configuration is for elevating GitHub GraphQL API privileges with a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 The default [rate limit](https://docs.github.com/en/graphql/overview/rate-limits-and-query-limits-for-the-graphql-api) when not using a GitHub PAT is 1000 query points per hour and is limited to public repository data. 
@@ -100,15 +100,16 @@ This can be set by creating a [GitHub Action](https://docs.github.com/en/actions
 with the following key-value field pairs:
 
 * key: `GH_API_TOKEN`
-* value: `<PAT>`
+* value: `[PAT]`
 
 where:
-* `PAT` is a GitHub personal access token and can be generated [here](https://github.com/settings/tokens) - required `<>`
+* `PAT` is a GitHub personal access token and can be generated [here](https://github.com/settings/tokens) - optional `[]`
 
-### NUM_REPO_PINS
+> the default `GH_API_TOKEN` is `GITHUB_TOKEN` (1000 GraphQL API query points per hour)
+
+### Number
 
 The optional `NUM_REPO_PINS` configuration controls the maximum possible number of repository pins to generate up to a hard limit of `20`.
-This is overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
 
 This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in an owned repo generated from this) 
 with the following key-value field pairs:
@@ -117,9 +118,13 @@ with the following key-value field pairs:
 * value: `[num]`
 
 where:
-* `num` is any int value greater than `0` - optional `[]` (default `6`)
+* `num` is any int value greater than `0` - optional `[]`
 
-### REPO_PIN_ORDER
+> the default `NUM_REPO_PINS` is `6`
+
+> overruled by the `REPO_NAMES_EXCLUSIVE` configuration when default, or the minimum value between both when also set.
+
+### Order
 
 The optional `REPO_PIN_ORDER` configuration controls the dynamic ordering of generated repository pin visualizations.
 
@@ -130,15 +135,18 @@ with the following key-value field pairs:
 * value: `[order]`
 
 where:
-* `order` is any value in [RepositoryOrderField](https://docs.github.com/en/graphql/reference/enums#repositoryorderfield) - optional `[]` (default `STARGAZERS` - default overruled by `REPO_NAMES_EXCLUSIVE`)
+* `order` is any value in [RepositoryOrderField](https://docs.github.com/en/graphql/reference/enums#repositoryorderfield) - optional `[]`
 
-### IS_EXCLUDE_REPOS_OWNED
+> the default `REPO_PIN_ORDER` is `STARGAZERS`
+
+> overruled by the `REPO_NAMES_EXCLUSIVE` configuration when default, but not when also set.
+
+### Exclude Owned Repositories (Not Pinned)
 
 By default, repository data collected for generating pin visualizations is first those pinned by a user, followed by
 other repositories owned by the user, and then other repositories the user has contributed to but does not own.
 
 The optional `IS_EXCLUDE_REPOS_OWNED` configuration controls whether repositories owned by a user but not pinned are excluded.
-This is overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
 
 This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in an owned repo generated from this) 
 with the following key-value field pairs:
@@ -147,15 +155,18 @@ with the following key-value field pairs:
 * value: `[is_exclude]`
 
 where:
-* `is_exclude` is either `true` or empty to represent false - optional `[]` (default `false`)
+* `is_exclude` is either `true` or `false` (or empty to represent false) - optional `[]`
 
-### IS_EXCLUDE_REPOS_CONTRIBUTED
+> the default `IS_EXCLUDE_REPOS_OWNED` is `false`
+
+> overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
+
+### Exclude Contributed Repositories (Neither Owned Nor Pinned)
 
 By default, repository data collected for generating pin visualizations is first those pinned by a user, followed by
 other repositories owned by the user, and then other repositories the user has contributed to but does not own.
 
 The optional `IS_EXCLUDE_REPOS_CONTRIBUTED` configuration controls whether repositories contributed to but not owned by a user are excluded.
-This is overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
 
 This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in an owned repo generated from this) 
 with the following key-value field pairs:
@@ -164,6 +175,25 @@ with the following key-value field pairs:
 * value: `[is_exclude]`
 
 where:
-* `is_exclude` is either `true` or empty to represent false - optional `[]` (default `false`)
+* `is_exclude` is either `true` or `false` (or empty to represent false) - optional `[]`
+
+> the default `IS_EXCLUDE_REPOS_CONTRIBUTED` is `false`
+
+> overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
+
+### Username
+
+The optional `USERNAME` configuration controls which (pinned/owned/contributed to) repositories are displayed by association.
+
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in an owned repo generated from this) 
+with the following key-value field pairs:
+
+* key: `GH_USERNAME`
+* value: `[username]`
+
+where:
+* `username` must match the username associated with repositories pinned/owned/contributed to by the user the pin display focuses on - optional `[]`
+
+> the default `USERNAME` is `github.repository_owner` (the username associated with the owner of the copy repository generated from this template)
 
 <!-- END: REPO-PINS -->
