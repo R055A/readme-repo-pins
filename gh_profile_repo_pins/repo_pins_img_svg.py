@@ -424,7 +424,7 @@ class RepoPinImg:
 
     def __footer(self, footer_y: float, footer_h: float) -> None:
         footer_x: float = self.__PADDING
-        if self.__repo_pin_data.primary_language_color:
+        if self.__repo_pin_data.primary_language_name:
             footer_x = self.__footer_primary_language(footer_x=footer_x, footer_y=footer_y, footer_h=footer_h)
         footer_x = self.__footer_stats(
             stats_icon=self.__ICON_STAR,
