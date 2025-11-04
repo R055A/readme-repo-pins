@@ -95,8 +95,7 @@ class ReadMeRepoPins:
             for repo in self.__repo_pins
             for explicit_repo in self.__repo_names_exclusive
             if repo.get("url")
-            and repo.get("url")
-            .strip()
+            and repo.get("url").strip()
             .rstrip("/")
             .lower()
             .endswith(explicit_repo.lower())
