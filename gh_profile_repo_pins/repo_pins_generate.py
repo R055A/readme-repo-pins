@@ -41,33 +41,49 @@ class GenerateRepoPins:
                 msg=f"Theme '{theme}' is either not in themes.json or the database is not updated with the json data."
             )
 
-    def __get_repo_data_key(self, repo_data: dict | str | None, repo_data_i: dict) -> str | None:
+    def __get_repo_data_key(
+        self, repo_data: dict | str | None, repo_data_i: dict
+    ) -> str | None:
         if repo_data and isinstance(repo_data, dict):
             repo_img_key: list[str] = [
-                k for k in repo_data.keys()
-                if repo_data_i.get(self.__REPO_NAME_KEY) in k and k in (repo_data_i.get(self.__REPO_URL_KEY) or "")
+                k
+                for k in repo_data.keys()
+                if repo_data_i.get(self.__REPO_NAME_KEY).lower() in k.lower()
+                and k.lower() in (repo_data_i.get(self.__REPO_URL_KEY) or "").lower()
             ]
             return repo_img_key[0] if repo_img_key else None
         return None
 
-    def __get_repo_theme_data(self, theme: dict | str | None, repo_data_i: dict) -> enums.RepoPinsImgThemeName | None:
-        repo_theme_key: str | None = self.__get_repo_data_key(repo_data=theme, repo_data_i=repo_data_i)
+    def __get_repo_theme_data(
+        self, theme: dict | str | None, repo_data_i: dict
+    ) -> enums.RepoPinsImgThemeName | None:
+        repo_theme_key: str | None = self.__get_repo_data_key(
+            repo_data=theme, repo_data_i=repo_data_i
+        )
         if theme and repo_theme_key:
             return enums.RepoPinsImgThemeName(theme[repo_theme_key])
         elif theme and not isinstance(theme, dict):
             return enums.RepoPinsImgThemeName(theme)
         return None
 
-    def __get_repo_bg_img_data(self, bg_img: dict | str | None, repo_data_i: dict) -> dict | str | None:
+    def __get_repo_bg_img_data(
+        self, bg_img: dict | str | None, repo_data_i: dict
+    ) -> dict | str | None:
         if bg_img and isinstance(bg_img, dict):
-            repo_img_key: str | None = self.__get_repo_data_key(repo_data=bg_img, repo_data_i=repo_data_i)
+            repo_img_key: str | None = self.__get_repo_data_key(
+                repo_data=bg_img, repo_data_i=repo_data_i
+            )
             if (
-                    repo_img_key
-                    and isinstance(bg_img.get(repo_img_key), dict)
-                    and bg_img.get(repo_img_key).get("img")
+                repo_img_key
+                and isinstance(bg_img.get(repo_img_key), dict)
+                and bg_img.get(repo_img_key).get("img")
             ):
                 return bg_img.get(repo_img_key)
-            elif bg_img.values() and not isinstance(list(bg_img.values())[0], dict) and bg_img.get("img"):
+            elif (
+                bg_img.values()
+                and not isinstance(list(bg_img.values())[0], dict)
+                and bg_img.get("img")
+            ):
                 return bg_img.get("img")
         elif bg_img and isinstance(bg_img, str):
             return bg_img

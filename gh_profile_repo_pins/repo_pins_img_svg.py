@@ -109,7 +109,9 @@ class RepoPinImg:
                 end = mid - 1
         return (txt[:start] + ell) if start > 0 else ell
 
-    def __repo_name(self, header_y: float, name_badge_gap: float, badge_w: float) -> tuple[float, str]:
+    def __repo_name(
+        self, header_y: float, name_badge_gap: float, badge_w: float
+    ) -> tuple[float, str]:
         name_x: float = self.__PADDING + round(18 * self.__SCALE)
         max_name_w: float = (
             (self.__WIDTH - self.__PADDING)
@@ -144,16 +146,16 @@ class RepoPinImg:
         return name_x, display_name
 
     def __badge(
-            self,
-            header_y: float,
-            font_size: float,
-            repo_name_x: float,
-            display_name: str,
-            name_badge_gap: float,
-            badge_w: float,
-            badge_txt: str
+        self,
+        header_y: float,
+        font_size: float,
+        repo_name_x: float,
+        display_name: str,
+        name_badge_gap: float,
+        badge_w: float,
+        badge_txt: str,
     ) -> None:
-        badge_h: float = round(font_size + round(3 * self.__SCALE) * 2)
+        badge_h: float = round(font_size + self.__ROUNDING * 1.1)
         badge_x: float = min(
             repo_name_x
             + self.__measure(txt=display_name, font_px=self.__NAME_SIZE)
@@ -189,10 +191,15 @@ class RepoPinImg:
             else (self.__BADGE_TEMPLATE if self.__repo_pin_data.is_template else "")
         )
         badge_font_size: float = self.__NAME_SIZE * 0.7
-        badge_w: float = int(round(self.__measure(txt=badge_txt, font_px=badge_font_size) + 0.5)) + self.__PADDING
+        badge_w: float = (
+            int(round(self.__measure(txt=badge_txt, font_px=badge_font_size) + 0.5))
+            + self.__PADDING
+        )
         name_badge_gap: float = round(self.__NAME_SIZE * 0.6)
 
-        repo_name_x, display_name = self.__repo_name(header_y=header_y, name_badge_gap=name_badge_gap, badge_w=badge_w)
+        repo_name_x, display_name = self.__repo_name(
+            header_y=header_y, name_badge_gap=name_badge_gap, badge_w=badge_w
+        )
         self.__badge(
             header_y=header_y,
             font_size=badge_font_size,
@@ -200,7 +207,7 @@ class RepoPinImg:
             display_name=display_name,
             name_badge_gap=name_badge_gap,
             badge_w=badge_w,
-            badge_txt=badge_txt
+            badge_txt=badge_txt,
         )
 
     def __wrap_lines(self, max_width_px: float, area_height_px: float) -> list[str]:
@@ -291,8 +298,7 @@ class RepoPinImg:
         )
         for i, line in enumerate(wrapped_description_lines):
             line = (
-                line
-                .replace("&", "&amp;")
+                line.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace('"', "&quot;")
@@ -314,9 +320,7 @@ class RepoPinImg:
             self.__parent_repo()  # TODO
         self.__description(description_y=body_y, description_h=body_h)
 
-    def __render_icon(
-        self, path_d: str, x: float, y: float, size: float
-    ) -> str:
+    def __render_icon(self, path_d: str, x: float, y: float, size: float) -> str:
         return (
             f"<g "
             f'transform="translate({x:.2f},{y:.2f}) '
@@ -395,7 +399,9 @@ class RepoPinImg:
         )
         return footer_x + txt_w + self.__PADDING + self.__META_SIZE
 
-    def __footer_primary_language(self, footer_x: float, footer_y: float, footer_h: float) -> float:
+    def __footer_primary_language(
+        self, footer_x: float, footer_y: float, footer_h: float
+    ) -> float:
         circle_cx: float = self.__PADDING + self.__ROUNDING
         self.__svg_str += (
             f"<circle "
@@ -418,15 +424,21 @@ class RepoPinImg:
             f"</text>"
         )
 
-        return txt_x + self.__measure(
-            txt=self.__repo_pin_data.primary_language_name,
-            font_px=self.__META_SIZE,
-        ) + self.__PADDING
+        return (
+            txt_x
+            + self.__measure(
+                txt=self.__repo_pin_data.primary_language_name,
+                font_px=self.__META_SIZE,
+            )
+            + self.__PADDING
+        )
 
     def __footer(self, footer_y: float, footer_h: float) -> None:
         footer_x: float = self.__PADDING
         if self.__repo_pin_data.primary_language_name:
-            footer_x = self.__footer_primary_language(footer_x=footer_x, footer_y=footer_y, footer_h=footer_h)
+            footer_x = self.__footer_primary_language(
+                footer_x=footer_x, footer_y=footer_y, footer_h=footer_h
+            )
         footer_x = self.__footer_stats(
             stats_icon=self.__ICON_STAR,
             stats_count=self.__repo_pin_data.stargazer_count,
@@ -499,7 +511,7 @@ class RepoPinImg:
             {self.__render_icon(
                 path_d=self.__ICON_REPO, 
                 x=self.__PADDING, 
-                y=header_y - (self.__NAME_SIZE * 0.8),
+                y=header_y - (self.__NAME_SIZE * 0.85),
                 size=self.__PADDING,
             )}
         """
