@@ -1,4 +1,4 @@
-from logging import basicConfig, getLogger, Logger, StreamHandler, WARNING
+from logging import getLogger, Logger, StreamHandler, Formatter, WARNING
 from os import environ, getenv, path, listdir, unlink
 import gh_profile_repo_pins.repo_pins_enum as enums
 from json import load, loads, JSONDecodeError
@@ -240,20 +240,16 @@ def tst_svg_parse_args() -> tuple[str, str, dict | str]:
         parse_bg_img(bg_img=args.img),
     )
 
+
 def get_logger() -> Logger:
-    logger_name: str = SRC_REPO_NAME
-    if logger_name not in Logger.manager.loggerDict:
-        return init_logger()
-    return getLogger(name=logger_name)
-
-
-def init_logger() -> Logger:
-    basicConfig(
-        level=WARNING,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[StreamHandler(stdout)],
-    )
-    return get_logger()
+    logger: Logger = getLogger(name=SRC_REPO_NAME)
+    if not logger.handlers:
+        logger.setLevel(level=WARNING)
+        stream_handler: StreamHandler = StreamHandler(stdout)
+        stream_handler.setFormatter(fmt=Formatter(fmt="%(asctime)s [%(levelname)s] %(message)s"))
+        logger.addHandler(hdlr=stream_handler)
+        logger.setLevel(level=WARNING)
+    return logger
 
 
 def set_git_creds(user_name: str, user_id: int) -> None:

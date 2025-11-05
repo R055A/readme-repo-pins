@@ -400,7 +400,7 @@ class RepoPinImg:
         return footer_x + txt_w + self.__PADDING + self.__META_SIZE
 
     def __footer_primary_language(
-        self, footer_x: float, footer_y: float, footer_h: float
+        self, footer_y: float, footer_h: float
     ) -> float:
         circle_cx: float = self.__PADDING + self.__ROUNDING
         self.__svg_str += (
@@ -437,7 +437,7 @@ class RepoPinImg:
         footer_x: float = self.__PADDING
         if self.__repo_pin_data.primary_language_name:
             footer_x = self.__footer_primary_language(
-                footer_x=footer_x, footer_y=footer_y, footer_h=footer_h
+                footer_y=footer_y, footer_h=footer_h
             )
         footer_x = self.__footer_stats(
             stats_icon=self.__ICON_STAR,

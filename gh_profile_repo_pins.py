@@ -1,9 +1,9 @@
-from gh_profile_repo_pins.utils import parse_args, init_logger, Logger
+from gh_profile_repo_pins.utils import parse_args, get_logger, Logger
 from gh_profile_repo_pins.repo_pins import ReadMeRepoPins
 
 
 def gh_readme_repo_pins():
-    log: Logger = init_logger()
+    log: Logger = get_logger()
     try:
         custom_gh_readme_repo_pins: ReadMeRepoPins = ReadMeRepoPins(*parse_args())
     except AssertionError as err:
