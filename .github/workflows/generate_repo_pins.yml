@@ -33,7 +33,7 @@ jobs:
 
       - name: Run
         env:
-          GH_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN || secrets.GITHUB_TOKEN }}
           GH_USERNAME: ${{ secrets.GH_USERNAME || github.repository_owner }}
           THEME: ${{ secrets.THEME }}
           BG_IMG: ${{ secrets.BG_IMG }}
