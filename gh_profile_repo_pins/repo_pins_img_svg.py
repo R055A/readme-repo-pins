@@ -38,6 +38,7 @@ class RepoPinImg:
     )
 
     __BADGE_PUBLIC: str = "Public"
+    __BADGE_PRIVATE: str = "Private"
     __BADGE_ARCHIVE: str = " archive"
     __BADGE_TEMPLATE: str = " template"
 
@@ -185,7 +186,9 @@ class RepoPinImg:
         )
 
     def __header(self, header_y: float) -> None:
-        badge_txt: str = self.__BADGE_PUBLIC + (
+        badge_txt: str = (
+            self.__BADGE_PRIVATE if self.__repo_pin_data.is_private else self.__BADGE_PUBLIC
+        ) + (
             self.__BADGE_ARCHIVE
             if self.__repo_pin_data.is_archived
             else (self.__BADGE_TEMPLATE if self.__repo_pin_data.is_template else "")

@@ -28,6 +28,7 @@ class GitHubGraphQlClient:
       parent { nameWithOwner }
       isTemplate
       isArchived
+      isPrivate
       pushedAt
       createdAt
       updatedAt
