@@ -323,6 +323,8 @@ def get_html_grid_pin_str(file_num: int) -> str:
 
 def update_md_file(update_pin_display_str: str, is_index_md: bool = False) -> None:
     md_file_path: Path = Path("README.md" if not is_index_md else "index.md")
+    if not md_file_path.exists() and not is_index_md:
+        md_file_path = Path("profile/README.md")  # try org profile README.md
     if md_file_path.exists():
         update_data: str = sub(
             pattern=r"(<!-- START: REPO-PINS -->)(.*?)(<!-- END: REPO-PINS -->)",
