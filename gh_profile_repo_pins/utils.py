@@ -244,7 +244,6 @@ def tst_svg_parse_args() -> tuple[str, str, dict | str]:
 def get_logger() -> Logger:
     logger: Logger = getLogger(name=SRC_REPO_NAME)
     if not logger.handlers:
-        logger.setLevel(level=WARNING)
         stream_handler: StreamHandler = StreamHandler(stdout)
         stream_handler.setFormatter(fmt=Formatter(fmt="%(asctime)s [%(levelname)s] %(message)s"))
         logger.addHandler(hdlr=stream_handler)
