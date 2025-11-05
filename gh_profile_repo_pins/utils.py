@@ -9,7 +9,7 @@ from pathlib import Path
 from sys import stdout
 from re import compile
 
-SRC_REPO_NAME: str = "readme-repo-pins"
+SRC_REPO_NAME: str = "readme-repo-pins-src"
 SRC_MODULE: str = "gh_profile_repo_pins"
 FILES_DIR: str = "files"
 IMGS_DIR: str = "imgs"
