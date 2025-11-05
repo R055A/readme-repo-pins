@@ -303,11 +303,14 @@ def write_svg(svg_obj_str: str, file_name: str) -> None:
 
 
 def get_md_grid_pin_str(file_num: int, repo_name: str, repo_url: str) -> str:
+    imgs_path: str = IMGS_DIR
+    if not Path("README.md").exists():
+        imgs_path = f"../{imgs_path}"  # try org profile README.md
     grid_str: str = ""
     if file_num % 2 == 0:
         grid_str += "\n"
     return (
-        grid_str + f"[![{repo_name} pin img]({get_path(path_str=IMGS_DIR)}/{file_num}.svg)]({repo_url}) "
+        grid_str + f"[![{repo_name} pin img]({get_path(path_str=imgs_path)}/{file_num}.svg)]({repo_url}) "
     )
 
 
