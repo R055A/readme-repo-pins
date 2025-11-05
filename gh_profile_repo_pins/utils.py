@@ -272,17 +272,17 @@ def get_path(path_str: str = FILES_DIR) -> str:
 
 
 def load_themes() -> dict[str, dict[str, dict[str, str]]]:
-    with open(file=f"{get_path()}/themes.json", mode="r") as themes_file:
+    with open(file=f"{get_path()}/themes.json", mode="r") as themes_file:  # correct for cloned repo
         return load(themes_file)
 
 
 def load_img(img_path: str) -> bytes | None:
-    with open(file=get_path(path_str=img_path), mode="rb") as img_file:
+    with open(file=get_path(path_str=img_path), mode="rb") as img_file:  # fix for local repo
         return img_file.read()
 
 
 def del_imgs() -> None:
-    dir_name: str = get_path(path_str=IMGS_DIR)
+    dir_name: str = get_path(path_str=IMGS_DIR)  # fix for local repo
     for filename in listdir(path=dir_name):
         file_path = path.join(dir_name, filename)
         if (
@@ -297,7 +297,7 @@ def del_imgs() -> None:
 
 def write_svg(svg_obj_str: str, file_name: str) -> None:
     with open(
-        file=f"{get_path(path_str=IMGS_DIR)}/{file_name}.svg", mode="w", encoding="utf-8"
+        file=f"{get_path(path_str=IMGS_DIR)}/{file_name}.svg", mode="w", encoding="utf-8"  # fix for local repo
     ) as svg_file:
         svg_file.write(svg_obj_str)
 
@@ -310,7 +310,7 @@ def get_md_grid_pin_str(file_num: int, repo_name: str, repo_url: str) -> str:
     if file_num % 2 == 0:
         grid_str += "\n"
     return (
-        grid_str + f"[![{repo_name} pin img]({get_path(path_str=imgs_path)}/{file_num}.svg)]({repo_url}) "
+        grid_str + f"[![{repo_name} pin img]({imgs_path}/{file_num}.svg)]({repo_url}) "
     )
 
 
@@ -320,7 +320,7 @@ def get_html_grid_pin_str(file_num: int) -> str:
         grid_str += "\n"
     return (
         grid_str
-        + f'<object type="image/svg+xml" data="{get_path(path_str=IMGS_DIR)}/{file_num}.svg"></object> '
+        + f'<object type="image/svg+xml" data="{IMGS_DIR}/{file_num}.svg"></object> '
     )
 
 
