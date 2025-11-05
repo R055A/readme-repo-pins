@@ -21,7 +21,7 @@ This creates a GitHub profile with frequently updated repo pins using CI automat
 The text in this repository is removed so that profiles only display the generated repository pins and other content
 added outside the placeholder. There is no further setup requirement for the profile repository and its automation.
 
-> The [template repo]((https://github.com/profile-icons/readme-repo-pins)) (and generated copies) execute the source code in this repo at runtime.
+> The [template repo](https://github.com/profile-icons/readme-repo-pins) (and generated copies) execute the source code in this repo at runtime.
 
 ## Configurations (optional)
 
