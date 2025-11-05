@@ -1,4 +1,4 @@
-from logging import basicConfig, getLogger, Logger, StreamHandler, WARNING
+from logging import getLogger, Logger, StreamHandler, Formatter, WARNING
 from os import environ, getenv, path, listdir, unlink
 import gh_profile_repo_pins.repo_pins_enum as enums
 from json import load, loads, JSONDecodeError
@@ -8,6 +8,11 @@ from shutil import rmtree
 from pathlib import Path
 from sys import stdout
 from re import compile
+
+SRC_REPO_NAME: str = "readme-repo-pins-src"
+SRC_MODULE: str = "gh_profile_repo_pins"
+FILES_DIR: str = "files"
+IMGS_DIR: str = "imgs"
 
 USERNAME: str = environ.get("GH_USERNAME", "")
 GH_API_TOKEN: str = environ.get(
@@ -236,13 +241,14 @@ def tst_svg_parse_args() -> tuple[str, str, dict | str]:
     )
 
 
-def init_logger() -> Logger:
-    basicConfig(
-        level=WARNING,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[StreamHandler(stdout)],
-    )
-    return getLogger("readme-repo-pins")
+def get_logger() -> Logger:
+    logger: Logger = getLogger(name=SRC_REPO_NAME)
+    if not logger.handlers:
+        stream_handler: StreamHandler = StreamHandler(stdout)
+        stream_handler.setFormatter(fmt=Formatter(fmt="%(asctime)s [%(levelname)s] %(message)s"))
+        logger.addHandler(hdlr=stream_handler)
+        logger.setLevel(level=WARNING)
+    return logger
 
 
 def set_git_creds(user_name: str, user_id: int) -> None:
@@ -252,9 +258,16 @@ def set_git_creds(user_name: str, user_id: int) -> None:
             gh_env_file.write(f"GH_USER_ID={user_id}\n")
 
 
-def get_path(path_str: str = "files") -> str:
+def get_path(path_str: str = FILES_DIR) -> str:
     if not Path(path_str).exists():
-        return f"../{path_str}"
+        if Path(f"{SRC_REPO_NAME}/{path_str}").exists():
+            return f"{SRC_REPO_NAME}/{path_str}"  # repo is cloned in workflow
+        elif not Path(f"../{path_str}").exists():
+            if str(Path.cwd()).endswith(SRC_MODULE):
+                path_str = f"../{path_str}"  # local/IDE testing output
+            Path(path_str).mkdir()  # create dir if not exist (such as initial imgs/ dir)
+        else:
+            return f"../{path_str}"  # local/IDE testing input
     return path_str
 
 
@@ -269,7 +282,7 @@ def load_img(img_path: str) -> bytes | None:
 
 
 def del_imgs() -> None:
-    dir_name: str = get_path()
+    dir_name: str = get_path(path_str=IMGS_DIR)
     for filename in listdir(path=dir_name):
         file_path = path.join(dir_name, filename)
         if (
@@ -284,7 +297,7 @@ def del_imgs() -> None:
 
 def write_svg(svg_obj_str: str, file_name: str) -> None:
     with open(
-        file=f"{get_path()}/{file_name}.svg", mode="w", encoding="utf-8"
+        file=f"{get_path(path_str=IMGS_DIR)}/{file_name}.svg", mode="w", encoding="utf-8"
     ) as svg_file:
         svg_file.write(svg_obj_str)
 
@@ -294,7 +307,7 @@ def get_md_grid_pin_str(file_num: int, repo_name: str, repo_url: str) -> str:
     if file_num % 2 == 0:
         grid_str += "\n"
     return (
-        grid_str + f"[![{repo_name} pin img]({get_path()}/{file_num}.svg)]({repo_url}) "
+        grid_str + f"[![{repo_name} pin img]({get_path(path_str=IMGS_DIR)}/{file_num}.svg)]({repo_url}) "
     )
 
 
@@ -304,16 +317,20 @@ def get_html_grid_pin_str(file_num: int) -> str:
         grid_str += "\n"
     return (
         grid_str
-        + f'<object type="image/svg+xml" data="{get_path()}/{file_num}.svg"></object> '
+        + f'<object type="image/svg+xml" data="{get_path(path_str=IMGS_DIR)}/{file_num}.svg"></object> '
     )
 
 
 def update_md_file(update_pin_display_str: str, is_index_md: bool = False) -> None:
-    readme_path: Path = Path("README.md" if not is_index_md else "index.md")
-    update_data: str = sub(
-        pattern=r"(<!-- START: REPO-PINS -->)(.*?)(<!-- END: REPO-PINS -->)",
-        repl=rf"\1{update_pin_display_str}\n\3",
-        string=readme_path.read_text(encoding="utf-8"),
-        flags=DOTALL,
-    )
-    readme_path.write_text(data=update_data, encoding="utf-8")
+    md_file_path: Path = Path("README.md" if not is_index_md else "index.md")
+    if md_file_path.exists():
+        update_data: str = sub(
+            pattern=r"(<!-- START: REPO-PINS -->)(.*?)(<!-- END: REPO-PINS -->)",
+            repl=rf"\1{update_pin_display_str}\n\3",
+            string=md_file_path.read_text(encoding="utf-8"),
+            flags=DOTALL,
+        )
+        md_file_path.write_text(data=update_data, encoding="utf-8")
+    else:
+        log: Logger = get_logger()
+        log.warning(msg=f"File does not exist: {md_file_path.name}.")

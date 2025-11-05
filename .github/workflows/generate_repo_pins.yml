@@ -17,10 +17,18 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Checkout repo src
+        uses: actions/checkout@v5
+        with:
+          repository: profile-icons/readme-repo-pins-src
+          ref: main
+          path: readme-repo-pins-src
+          fetch-depth: 1
 
       - name: Setup
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
@@ -29,7 +37,7 @@ jobs:
           PIP_DISABLE_PIP_VERSION_CHECK: '1'
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r readme-repo-pins-src/requirements.txt
 
       - name: Run
         env:
@@ -41,7 +49,7 @@ jobs:
           REPO_NAMES_EXCLUSIVE: ${{ secrets.REPO_NAMES_EXCLUSIVE }}
           IS_EXCLUDE_REPOS_OWNED: ${{ secrets.IS_EXCLUDE_REPOS_OWNED }}
           IS_EXCLUDE_REPOS_CONTRIBUTED: ${{ secrets.IS_EXCLUDE_REPOS_CONTRIBUTED }}
-        run: python gh_profile_repo_pins.py
+        run: python readme-repo-pins-src/gh_profile_repo_pins.py
 
       - name: Commit
         env:
@@ -49,11 +57,11 @@ jobs:
           GH_USER_ID: ${{ env.GH_USER_ID }}
           GH_USER_NAME: ${{ env.GH_USER_NAME }}
         run: |
-          git add README.md index.md files/*.svg || true
+          git add README.md index.md imgs/*.svg || true
           if ! git diff --cached --quiet; then
             git config user.name "${GH_USER_NAME}"
             git config user.email "${GH_USER_ID}+${GH_USERNAME}@users.noreply.github.com"
-            git commit -m "Auto-update profile repo pins" README.md index.md files/*.svg
+            git commit -m "Auto-update profile repo pins"
 
             for attempt in 1 2 3; do
               git pull || true

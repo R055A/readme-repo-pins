@@ -4,7 +4,7 @@ from gh_profile_repo_pins.repo_pins_exceptions import (
     RepoPinImageMediaError,
 )
 from gh_profile_repo_pins.repo_pins_api_client import GitHubGraphQlClient
-from gh_profile_repo_pins.utils import set_git_creds, init_logger, Logger
+from gh_profile_repo_pins.utils import set_git_creds, get_logger, Logger
 from gh_profile_repo_pins.repo_pins_generate import GenerateRepoPins
 import gh_profile_repo_pins.repo_pins_enum as enums
 
@@ -29,7 +29,7 @@ class ReadMeRepoPins:
         is_exclude_repos_owned: bool = False,
         is_exclude_repos_contributed: bool = False,
     ) -> None:
-        self.__log: Logger = init_logger()
+        self.__log: Logger = get_logger()
         try:
             self.__gh_api_client: GitHubGraphQlClient = GitHubGraphQlClient(
                 api_token=api_token, username=username
