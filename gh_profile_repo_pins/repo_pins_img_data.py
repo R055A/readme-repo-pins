@@ -17,6 +17,7 @@ class RepoPinImgData:
     parent: str
     is_template: bool
     is_archived: bool
+    is_private: bool
     theme: enums.RepoPinsImgThemeName
     bg_img: RepoPinImgMedia
 
@@ -73,6 +74,7 @@ class RepoPinImgData:
             parent=repo_parent,
             is_template=repo_data.get("isTemplate", False) or False,
             is_archived=repo_data.get("isArchived", False) or False,
+            is_private=repo_data.get("isPrivate", False) or False,
             theme=(
                 theme_name
                 if theme_name
@@ -88,7 +90,8 @@ class RepoPinImgData:
     def __repr__(self) -> str:
         return (
             f"name: {self.repo_name}\n"
-            f"type: Public{" archive" if self.is_archived else (" template" if self.is_template else "")}"
+            f"type: {"Private" if self.is_private else "Public"}"
+            f"{" archive" if self.is_archived else (" template" if self.is_template else "")}"
             f"{"" if not self.is_fork else f"\nforked from {self.parent}"}"
             f"{f"\ndescription: {self.description}" if self.description else ""}"
             f"{f"\nprimary language: ({self.primary_language_color}) {self.primary_language_name}"
