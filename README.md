@@ -5,12 +5,12 @@ Personalize selection, visualization and dynamic ordering of repository pins for
 No PAT required, just copy the repo using the template feature for efficient data fetching and visualization rendering.
 Supports profile website deployment for full utilization of the frequently updated repository pin visualization features.
 
-![example-1](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/files/0.svg) 
-![example-2](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/files/1.svg)
+![example-1](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/imgs/0.svg) 
+![example-2](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/imgs/1.svg)
 
 ## Instructions
 
-* Simply create a copy of this template repository by clicking [here](https://github.com/new?template_name=readme-repo-pins&template_owner=r055a)
+* Simply create a copy of the template repository by clicking [here](https://github.com/new?template_name=readme-repo-pins&template_owner=profile-icons)
   * name the new repository `Repository name*` identical to the `owner*` name.
   * select the green `Create Repository` button.
 
@@ -20,6 +20,8 @@ This creates a GitHub profile with frequently updated repo pins using CI automat
 
 The text in this repository is removed so that profiles only display the generated repository pins and other content
 added outside the placeholder. There is no further setup requirement for the profile repository and its automation.
+
+> The template repo (and copies) execute the source code in this repo at runtime: [profile-icons/readme-repo-pins](https://github.com/profile-icons/readme-repo-pins)
 
 ## Configurations (optional)
 
@@ -40,9 +42,11 @@ with the following key-value field pairs:
 
 where:
 * `owner/repo` matches the owner/repository names in the URL of a given repository - required `<>`
-* `theme_name` matches any key in `files/themes.json`. If a theme is unavailable, you can add it to `files/themes.json` - required `<>`
+* `theme_name` matches any key in `files/themes.json` - required `<>`
 
-> the default `THEME` is `github_soft`
+> If a theme is unavailable, you can add it to `files/themes.json` - refer [here](https://github.com/profile-icons/readme-repo-pins-src/issues/1) for more information.
+
+> The default `THEME` is `github_soft`
 
 ### Background Image
 
@@ -73,7 +77,7 @@ where:
 * `mode` is any [CSS object-fit](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/object-fit) property value in `[cover, contain, stretch]` - optional `[]` (default `stretch`)
 * `opacity` is a float value between `0` and `1.0` - optional `[]` (default `0.25`)
 
-> the default `BG_IMG` is `None` (which defaults to the `THEME` background color)
+> The default `BG_IMG` is `None` (which defaults to the `THEME` background color)
 
 ### Repository List
 
@@ -105,7 +109,7 @@ with the following key-value field pairs:
 where:
 * `PAT` is a GitHub personal access token and can be generated [here](https://github.com/settings/tokens) - optional `[]`
 
-> the default `GH_API_TOKEN` is `GITHUB_TOKEN` (1000 GraphQL API query points per hour)
+> The default `GH_API_TOKEN` is `GITHUB_TOKEN` (1000 GraphQL API query points per hour)
 
 ### Number
 
@@ -120,9 +124,9 @@ with the following key-value field pairs:
 where:
 * `num` is any int value greater than `0` - optional `[]`
 
-> the default `NUM_REPO_PINS` is `6`
+> The default `NUM_REPO_PINS` is `6`
 
-> overruled by the `REPO_NAMES_EXCLUSIVE` configuration when default, or the minimum value between both when also set.
+> Overruled by the `REPO_NAMES_EXCLUSIVE` configuration when default, or the minimum value between both when also set.
 
 ### Order
 
@@ -137,9 +141,9 @@ with the following key-value field pairs:
 where:
 * `order` is any value in [RepositoryOrderField](https://docs.github.com/en/graphql/reference/enums#repositoryorderfield) - optional `[]`
 
-> the default `REPO_PIN_ORDER` is `STARGAZERS`
+> The default `REPO_PIN_ORDER` is `STARGAZERS`
 
-> overruled by the `REPO_NAMES_EXCLUSIVE` configuration when default, but not when also set.
+> Overruled by the `REPO_NAMES_EXCLUSIVE` configuration when default, but not when also set.
 
 ### Exclude Owned Repositories (Not Pinned)
 
@@ -157,9 +161,9 @@ with the following key-value field pairs:
 where:
 * `is_exclude` is either `true` or `false` (or empty to represent false) - optional `[]`
 
-> the default `IS_EXCLUDE_REPOS_OWNED` is `false`
+> The default `IS_EXCLUDE_REPOS_OWNED` is `false`
 
-> overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
+> Overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
 
 ### Exclude Contributed Repositories (Neither Owned Nor Pinned)
 
@@ -177,13 +181,13 @@ with the following key-value field pairs:
 where:
 * `is_exclude` is either `true` or `false` (or empty to represent false) - optional `[]`
 
-> the default `IS_EXCLUDE_REPOS_CONTRIBUTED` is `false`
+> The default `IS_EXCLUDE_REPOS_CONTRIBUTED` is `false`
 
-> overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
+> Overruled by the `REPO_NAMES_EXCLUSIVE` configuration, as pin visuals are generated only for listed repositories.
 
 ### Username
 
-The optional `USERNAME` configuration controls which (pinned/owned/contributed to) repositories are displayed by association.
+The optional `GH_USERNAME` configuration controls which (pinned/owned/contributed to) repositories are displayed by association.
 
 This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in an owned repo generated from this) 
 with the following key-value field pairs:
@@ -194,6 +198,6 @@ with the following key-value field pairs:
 where:
 * `username` must match the username associated with repositories pinned/owned/contributed to by the user the pin display focuses on - optional `[]`
 
-> the default `USERNAME` is `github.repository_owner` (the username associated with the owner of the copy repository generated from this template)
+> The default `GH_USERNAME` is `github.repository_owner` (the username associated with the owner of the copy repository generated from this template)
 
 <!-- END: REPO-PINS -->
