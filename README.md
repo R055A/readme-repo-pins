@@ -5,7 +5,7 @@ Personalize selection, visualization and dynamic ordering of repository pins for
 No PAT required, just copy the repo using the template feature for efficient data fetching and visualization rendering.  
 Supports multi-language displaying of private and public repository pins for both user and organisation profiles.  
 Supports profile website deployment for full utilization of the frequently updated repository pin visualization features.  
-Pins can be personalized by repo selection, dynamic order, background image (URL or path), and available themes.
+Pins can be customized by repo selection, dynamic order, background image (URL or path), and available themes.
 
 ![example-1](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/imgs/0.svg) 
 ![example-2](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/imgs/1.svg)
