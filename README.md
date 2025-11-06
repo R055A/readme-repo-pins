@@ -18,7 +18,10 @@ Pins can be personalized by repo selection, dynamic order, background image (URL
 
 This creates a GitHub profile with frequently updated repo pins using CI automation and a placeholder:
 
-`<!-- START/END: REPO-PINS -->`
+```
+<!-- START: REPO-PINS -->
+<!-- END: REPO-PINS -->
+```
 
 The text in this repository is removed so that profiles only display the generated repository pins and other content
 added outside the placeholder. There is no further setup requirement for the profile repository and its automation.
