@@ -1,4 +1,5 @@
 from gh_profile_repo_pins.repo_pins_img_theme import RepoPinImgTheme, ThemeSVG
+from gh_profile_repo_pins.repo_pins_img_nlp import RepoPinImgTranslator
 from gh_profile_repo_pins.repo_pins_img_data import RepoPinImgData
 import gh_profile_repo_pins.repo_pins_enum as enums
 
@@ -54,7 +55,18 @@ class RepoPinImg:
                 theme_name=self.__repo_pin_data.theme,
             ).svg_theme
         )
+        self.__repo_pin_translator: RepoPinImgTranslator = RepoPinImgTranslator()
         self.__svg_str: str = ""
+
+    @staticmethod
+    def __format_svg_txt(txt: str) -> str:
+        return (
+            txt.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&apos;")
+        )
 
     def __theme_style_block(self) -> str | AttributeError:
         css: str = "<style>" + str(
@@ -146,7 +158,7 @@ class RepoPinImg:
 
         return name_x, display_name
 
-    def __badge(
+    def __badge_layout(
         self,
         header_y: float,
         font_size: float,
@@ -154,8 +166,7 @@ class RepoPinImg:
         display_name: str,
         name_badge_gap: float,
         badge_w: float,
-        badge_txt: str,
-    ) -> None:
+    ) -> tuple[float, float, float]:
         badge_h: float = round(font_size + self.__ROUNDING * 1.1)
         badge_x: float = min(
             repo_name_x
@@ -165,8 +176,18 @@ class RepoPinImg:
             (self.__WIDTH - self.__PADDING) - badge_w,
         )
         badge_y: float = header_y - (badge_h * 0.8)
+        return badge_x, badge_y, badge_h
 
-        self.__svg_str += (
+    def __badge(
+        self,
+        badge_x: float,
+        badge_y: float,
+        badge_h: float,
+        font_size: float,
+        badge_w: float,
+        badge_txt: str,
+    ) -> str:
+        return (
             f'<g transform="translate({badge_x:.2f},{badge_y:.2f})">'
             f'<rect width="{badge_w}" '
             f'height="{badge_h}" '
@@ -180,14 +201,51 @@ class RepoPinImg:
             f'fill="{"var(--danger)" if self.__repo_pin_data.is_archived else "var(--text)"}" '
             f'textLength="{badge_w - self.__PADDING}" '
             f'lengthAdjust="spacingAndGlyphs">'
-            f"{badge_txt}"
+            f"{self.__format_svg_txt(txt=badge_txt)}"
             f"</text>"
             f"</g>"
         )
 
+    def __badge_multi_lang(
+        self,
+        badge_x: float,
+        badge_y: float,
+        badge_h: float,
+        font_size: float,
+        badge_w: float,
+        badge_txt: str,
+    ) -> str:
+        svg_switch: str = "<switch>"
+        for lang, translated_badge_text in self.__repo_pin_translator.translate_all(
+            input_txt=badge_txt
+        ).items():
+            svg_switch += f'<g systemLanguage="{lang}">'
+            svg_switch += self.__badge(
+                badge_x=badge_x,
+                badge_y=badge_y,
+                badge_h=badge_h,
+                font_size=font_size,
+                badge_w=badge_w,
+                badge_txt=translated_badge_text,
+            )
+            svg_switch += "</g>"
+        svg_switch += "<g>"
+        svg_switch += self.__badge(
+            badge_x=badge_x,
+            badge_y=badge_y,
+            badge_h=badge_h,
+            font_size=font_size,
+            badge_w=badge_w,
+            badge_txt=badge_txt,
+        )
+        svg_switch += "</g></switch>"
+        return svg_switch
+
     def __header(self, header_y: float) -> None:
         badge_txt: str = (
-            self.__BADGE_PRIVATE if self.__repo_pin_data.is_private else self.__BADGE_PUBLIC
+            self.__BADGE_PRIVATE
+            if self.__repo_pin_data.is_private
+            else self.__BADGE_PUBLIC
         ) + (
             self.__BADGE_ARCHIVE
             if self.__repo_pin_data.is_archived
@@ -203,21 +261,28 @@ class RepoPinImg:
         repo_name_x, display_name = self.__repo_name(
             header_y=header_y, name_badge_gap=name_badge_gap, badge_w=badge_w
         )
-        self.__badge(
+
+        badge_x, badge_y, badge_h = self.__badge_layout(
             header_y=header_y,
             font_size=badge_font_size,
             repo_name_x=repo_name_x,
             display_name=display_name,
             name_badge_gap=name_badge_gap,
             badge_w=badge_w,
+        )
+        self.__svg_str += self.__badge_multi_lang(
+            badge_x=badge_x,
+            badge_y=badge_y,
+            badge_h=badge_h,
+            font_size=badge_font_size,
+            badge_w=badge_w,
             badge_txt=badge_txt,
         )
 
-    def __wrap_lines(self, max_width_px: float, area_height_px: float) -> list[str]:
-        if (
-            not self.__repo_pin_data.description
-            or (area_height_px - self.__DESC_SIZE) < -1e-6
-        ):
+    def __wrap_lines(
+        self, description_txt: str, max_width_px: float, area_height_px: float
+    ) -> list[str]:
+        if not description_txt or (area_height_px - self.__DESC_SIZE) < -1e-6:
             return []
 
         max_lines: int = max(
@@ -230,7 +295,7 @@ class RepoPinImg:
                 ),
             ),
         )
-        words: list[str] = self.__repo_pin_data.description.strip().split(" ")
+        words: list[str] = description_txt.strip().split(" ")
         lines: list[str] = []
         cur_line: str = ""
         for word in words:
@@ -294,34 +359,62 @@ class RepoPinImg:
     def __parent_repo(self):
         pass  # TODO
 
-    def __description(self, description_y: float, description_h: float) -> None:
+    def __description(
+        self, description_txt: str, description_y: float, description_h: float
+    ) -> str:
         wrapped_description_lines: list[str] = self.__wrap_lines(
+            description_txt=description_txt,
             max_width_px=(self.__WIDTH - (self.__PADDING * 2)),
             area_height_px=max(0.0, description_h),
         )
+
+        svg_txt = str()
         for i, line in enumerate(wrapped_description_lines):
-            line = (
-                line.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace('"', "&quot;")
-                .replace("'", "&apos;")
-            )
-            self.__svg_str += (
+            svg_txt += (
                 f"<text "
                 f'x="{self.__PADDING}" '
                 f'y="{(description_y + self.__DESC_SIZE) + (i * self.__DESC_LINE_H):.2f}" '
                 f'font-size="{self.__DESC_SIZE}" '
                 f'fill="var(--text)"'
                 f">"
-                f"{line}"
+                f"{self.__format_svg_txt(txt=line)}"
                 f"</text>"
             )
+        return svg_txt
+
+    def __description_multi_lang(
+        self, description_txt: str, description_y: float, description_h: float
+    ) -> str:
+        multi_lang_descriptions: dict[str, str] = (
+            self.__repo_pin_translator.translate_all(input_txt=description_txt)
+        )
+        svg_switch: str = "<switch>"
+        for lang, translated_description in multi_lang_descriptions.items():
+            svg_switch += f'<g systemLanguage="{lang}">'
+            svg_switch += self.__description(
+                description_txt=translated_description,
+                description_y=description_y,
+                description_h=description_h,
+            )
+            svg_switch += "</g>"
+        svg_switch += "<g>"
+        svg_switch += self.__description(
+            description_txt=description_txt,
+            description_y=description_y,
+            description_h=description_h,
+        )
+        svg_switch += "</g></switch>"
+        return svg_switch
 
     def __body(self, body_y: float, body_h: float) -> None:
         if self.__repo_pin_data.is_fork and self.__repo_pin_data.parent:
             self.__parent_repo()  # TODO
-        self.__description(description_y=body_y, description_h=body_h)
+        if self.__repo_pin_data.description:
+            self.__svg_str += self.__description_multi_lang(
+                description_txt=self.__repo_pin_data.description,
+                description_y=body_y,
+                description_h=body_h,
+            )
 
     def __render_icon(self, path_d: str, x: float, y: float, size: float) -> str:
         return (
@@ -402,9 +495,7 @@ class RepoPinImg:
         )
         return footer_x + txt_w + self.__PADDING + self.__META_SIZE
 
-    def __footer_primary_language(
-        self, footer_y: float, footer_h: float
-    ) -> float:
+    def __footer_primary_language(self, footer_y: float, footer_h: float) -> float:
         circle_cx: float = self.__PADDING + self.__ROUNDING
         self.__svg_str += (
             f"<circle "
