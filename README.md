@@ -2,8 +2,10 @@
 # GitHub Profile Repository Pins
 
 Personalize selection, visualization and dynamic ordering of repository pins for public and private GitHub profiles.  
-No PAT required, just copy the repo using the template feature for efficient data fetching and visualization rendering.
-Supports profile website deployment for full utilization of the frequently updated repository pin visualization features.
+No PAT required, just copy the repo using the template feature for efficient data fetching and visualization rendering.  
+Supports multi-language displaying of private and public repository pins for both user and organisation profiles.  
+Supports profile website deployment for full utilization of the frequently updated repository pin visualization features.  
+Pins can be personalized by repo selection, dynamic order, background image (URL or path), and available themes.
 
 ![example-1](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/imgs/0.svg) 
 ![example-2](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/imgs/1.svg)
@@ -105,6 +107,8 @@ where:
 
 > The default `GH_API_TOKEN` is `GITHUB_TOKEN` (1000 GraphQL API query points per hour)
 
+> A `PAT` is required for displaying private repository pins
+
 ### Number
 
 The optional `NUM_REPO_PINS` configuration controls the maximum possible number of repository pins to generate up to a hard limit of `20`.
@@ -188,5 +192,7 @@ where:
 * `username` must match the username associated with repositories pinned/owned/contributed to by the user the pin display focuses on - optional `[]`
 
 > The default `GH_USERNAME` is `github.repository_owner` (the username associated with the owner of the template-generated repo)
+
+> `GH_USERNAME` is required for displaying pins on an organisation profile
 
 <!-- END: REPO-PINS -->
