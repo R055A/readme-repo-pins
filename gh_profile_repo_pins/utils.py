@@ -245,7 +245,9 @@ def get_logger() -> Logger:
     logger: Logger = getLogger(name=SRC_REPO_NAME)
     if not logger.handlers:
         stream_handler: StreamHandler = StreamHandler(stdout)
-        stream_handler.setFormatter(fmt=Formatter(fmt="%(asctime)s [%(levelname)s] %(message)s"))
+        stream_handler.setFormatter(
+            fmt=Formatter(fmt="%(asctime)s [%(levelname)s] %(message)s")
+        )
         logger.addHandler(hdlr=stream_handler)
         logger.setLevel(level=WARNING)
     return logger
@@ -265,19 +267,25 @@ def get_path(path_str: str = FILES_DIR) -> str:
         elif not Path(f"../{path_str}").exists():
             if str(Path.cwd()).endswith(SRC_MODULE):
                 path_str = f"../{path_str}"  # local/IDE testing output
-            Path(path_str).mkdir()  # create dir if not exist (such as initial imgs/ dir)
+            Path(
+                path_str
+            ).mkdir()  # create dir if not exist (such as initial imgs/ dir)
         else:
             return f"../{path_str}"  # local/IDE testing input
     return path_str
 
 
 def load_themes() -> dict[str, dict[str, dict[str, str]]]:
-    with open(file=f"{get_path()}/themes.json", mode="r") as themes_file:  # correct for cloned repo
+    with open(
+        file=f"{get_path()}/themes.json", mode="r"
+    ) as themes_file:  # correct for cloned repo
         return load(themes_file)
 
 
 def load_img(img_path: str) -> bytes | None:
-    with open(file=get_path(path_str=img_path), mode="rb") as img_file:  # fix for local repo
+    with open(
+        file=get_path(path_str=img_path), mode="rb"
+    ) as img_file:  # fix for local repo
         return img_file.read()
 
 
@@ -297,7 +305,9 @@ def del_imgs() -> None:
 
 def write_svg(svg_obj_str: str, file_name: str) -> None:
     with open(
-        file=f"{get_path(path_str=IMGS_DIR)}/{file_name}.svg", mode="w", encoding="utf-8"  # fix for local repo
+        file=f"{get_path(path_str=IMGS_DIR)}/{file_name}.svg",
+        mode="w",
+        encoding="utf-8",  # fix for local repo
     ) as svg_file:
         svg_file.write(svg_obj_str)
 
