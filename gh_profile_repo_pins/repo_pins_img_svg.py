@@ -41,10 +41,17 @@ class RepoPinImg:
     __ICON_ISSUE_OUTER: str = (
         "M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"
     )
+    __ICON_PR: str = (
+        "M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 "
+        "3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 "
+        "1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 "
+        "0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"
+    )
 
     __URL_PATH_STARS: str = "stargazers"
     __URL_PATH_FORKS: str = "forks"
     __URL_PATH_ISSUES: str = "issues"
+    __URL_PATH_PULLS: str = "pulls"
 
     __ISSUES_HELP_TXT: str = "help:"
 
@@ -132,6 +139,14 @@ class RepoPinImg:
                 end = mid - 1
         return (txt[:start] + ell) if start > 0 else ell
 
+    def __href_link_open(self, url: str, url_path: str = None) -> None:
+        self.__svg_str += (
+            f'<a href="{url}/{url_path if url_path else ""}" target="_blank">'
+        )
+
+    def __href_link_close(self) -> None:
+        self.__svg_str += "</a>"
+
     def __repo_name(
         self, header_y: float, name_badge_gap: float, badge_w: float
     ) -> tuple[float, str]:
@@ -148,11 +163,8 @@ class RepoPinImg:
             max_w=max_name_w if max_name_w > 0 else 0,
         )
 
+        self.__href_link_open(url=self.__repo_pin_data.url)
         self.__svg_str += (
-            f"<a "
-            f'href="{self.__repo_pin_data.url}" '
-            f'target="_blank"'
-            f">"
             f"<text "
             f'x="{name_x}" '
             f'y="{header_y}" '
@@ -164,7 +176,8 @@ class RepoPinImg:
         if len(owner_repo) > 1:
             self.__svg_str += f'<tspan font-weight="500">{owner_repo[0]}/</tspan>'
         self.__svg_str += f'<tspan font-weight="700">{owner_repo[-1]}</tspan>'
-        self.__svg_str += "</text></a>"
+        self.__svg_str += "</text>"
+        self.__href_link_close()
 
         return name_x, display_name
 
@@ -203,7 +216,7 @@ class RepoPinImg:
             f'height="{badge_h}" '
             f'rx="{round(badge_h / 2)}" '
             f'ry="{round(badge_h / 2)}" '
-            f'fill="var(--canvas)" '
+            f'fill="transparent" '
             f'stroke="{"var(--danger)" if self.__repo_pin_data.is_archived else "var(--border)"}"/>'
             f'<text x="{self.__PADDING / 2}" '
             f'y="{round(badge_h / 2 + font_size / 2) - 1}" '
@@ -468,7 +481,6 @@ class RepoPinImg:
         footer_x: float,
         footer_y: float,
         footer_h: float,
-        url_path: str,
     ) -> float:
         if stats_count <= 0:
             return footer_x
@@ -476,7 +488,6 @@ class RepoPinImg:
         txt: str = self.__fmt_footer_stats_str(stats_count=stats_count)
         txt_w: float = self.__measure(txt=txt, font_px=self.__META_SIZE)
         self.__svg_str += (
-            f'<a href="{f'{self.__repo_pin_data.url}/{url_path}'}" target="_blank">'
             f"<g>"
             f"<rect "
             f'x="{footer_x:.2f}" '
@@ -506,7 +517,6 @@ class RepoPinImg:
             f"{txt}"
             f"</text>"
             f"</g>"
-            f"</a>"
         )
         return footer_x + txt_w + self.__PADDING + self.__META_SIZE
 
@@ -550,39 +560,73 @@ class RepoPinImg:
                 footer_y=footer_y, footer_h=footer_h
             )
 
+        self.__href_link_open(
+            url=self.__repo_pin_data.url,
+            url_path=(
+                self.__URL_PATH_STARS if not self.__repo_pin_data.is_private else None
+            ),
+        )
         footer_x = self.__footer_stats(
             stats_icons=[self.__ICON_STAR],
             stats_count=self.__repo_pin_data.stargazer_count,
             footer_x=footer_x,
             footer_y=footer_y,
             footer_h=footer_h,
-            url_path=self.__URL_PATH_STARS,
         )
+        self.__href_link_close()
 
+        self.__href_link_open(
+            url=self.__repo_pin_data.url,
+            url_path=(
+                self.__URL_PATH_FORKS if not self.__repo_pin_data.is_private else None
+            ),
+        )
         footer_x = self.__footer_stats(
             stats_icons=[self.__ICON_FORK],
             stats_count=self.__repo_pin_data.fork_count,
             footer_x=footer_x,
             footer_y=footer_y,
             footer_h=footer_h,
-            url_path=self.__URL_PATH_FORKS,
         )
+        self.__href_link_close()
 
+        self.__href_link_open(
+            url=self.__repo_pin_data.url,
+            url_path=(
+                self.__URL_PATH_ISSUES if not self.__repo_pin_data.is_private else None
+            ),
+        )
         footer_x = self.__footer_stats(
             stats_icons=[self.__ICON_ISSUE_INNER, self.__ICON_ISSUE_OUTER],
             stats_count=self.__repo_pin_data.issue_open_count,
             footer_x=footer_x,
             footer_y=footer_y,
             footer_h=footer_h,
-            url_path=self.__URL_PATH_ISSUES,
         )
         if self.__repo_pin_data.issue_help_count:
             footer_x -= self.__PADDING / 2
-            self.__footer_txt(
+            footer_x = self.__footer_txt(
                 txt=f"({self.__ISSUES_HELP_TXT} {self.__repo_pin_data.issue_help_count})",
                 txt_x=footer_x,
                 footer_y=footer_y,
             )
+            footer_x -= self.__PADDING / 2
+        self.__href_link_close()
+
+        self.__href_link_open(
+            url=self.__repo_pin_data.url,
+            url_path=(
+                self.__URL_PATH_PULLS if not self.__repo_pin_data.is_private else None
+            ),
+        )
+        self.__footer_stats(
+            stats_icons=[self.__ICON_PR],
+            stats_count=self.__repo_pin_data.pull_request_count,
+            footer_x=footer_x,
+            footer_y=footer_y,
+            footer_h=footer_h,
+        )
+        self.__href_link_close()
 
     def __bg_img(self) -> None:
         self.__repo_pin_data.bg_img.load()
@@ -698,6 +742,7 @@ def tst_svg_render(
             "forkCount": 9_900_000_000,
             "issues": {"totalCount": 10},
             "issuesHelp": {"totalCount": 1},
+            "pullRequests": {"totalCount": 22},
             "owner": {"login": "profile-icons"},
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
             "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
@@ -712,6 +757,7 @@ def tst_svg_render(
             "parent": {"nameWithOwner": "R055A/readme-repo-pins"},
             "isTemplate": True,
             "isArchived": True,
+            "isPrivate": False,
         },
         {
             "name": test_username,
@@ -719,6 +765,7 @@ def tst_svg_render(
             "forkCount": 1,
             "issues": {"totalCount": 1},
             "issuesHelp": {"totalCount": 0},
+            "pullRequests": {"totalCount": 1},
             "owner": {"login": test_username},
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
             "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -728,6 +775,7 @@ def tst_svg_render(
             "parent": {},
             "isTemplate": True,
             "isArchived": False,
+            "isPrivate": True,
         },
         {
             "name": "readme-repo-pins-readme-repo-pins",
@@ -735,6 +783,7 @@ def tst_svg_render(
             "forkCount": 0,
             "issues": {"totalCount": 0},
             "issuesHelp": {"totalCount": 0},
+            "pullRequests": {"totalCount": 0},
             "owner": {"login": "profile-icons"},
             "description": "",
             "url": "https://github.com/profile-icons/readme-repo-pins",
@@ -743,6 +792,7 @@ def tst_svg_render(
             "parent": {},
             "isTemplate": False,
             "isArchived": False,
+            "isPrivate": False,
         },
     ]
 

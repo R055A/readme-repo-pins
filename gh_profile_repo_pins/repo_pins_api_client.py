@@ -22,6 +22,7 @@ class GitHubGraphQlClient:
       forkCount
       issues(states: OPEN) { totalCount }
       issuesHelp: issues(labels: ["help wanted"], states: OPEN) { totalCount }
+      pullRequests(states: OPEN) { totalCount }
       owner { login }
       description
       url

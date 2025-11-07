@@ -19,6 +19,10 @@ GH_API_TOKEN: str = environ.get(
     "GH_API_TOKEN", ""
 )  # use default fine-grain PAT if local &/or for increased rate limit
 
+REPO_OWNER: str = environ.get(
+    "GH_REPO_OWNER", ""
+)  # repo_owner is for repo code executed from/for, username is auth
+
 # optional, can be a string (for all repos), or a dict (for individual repos) in the following format:
 # EITHER (dict):
 #
@@ -88,7 +92,9 @@ def parse_bg_img(bg_img: str) -> dict | str | None:
     return bg_img
 
 
-def parse_args() -> tuple[str, str, str, str | dict, dict | str, int, str, bool, bool]:
+def parse_args() -> (
+    tuple[str, str, str, str | dict, dict | str, int, str, bool, bool, str]
+):
     parser = ArgumentParser(
         description="GitHub API-fetch pinned/popular/contributed/select/etc repositories for a given username"
     )
@@ -156,6 +162,12 @@ def parse_args() -> tuple[str, str, str, str | dict, dict | str, int, str, bool,
         default=True if IS_EXCLUDE_REPOS_CONTRIBUTED else False,
         help="If (not owned) repositories contributed to are excluded from complementing pins.",
     )
+    parser.add_argument(
+        "--owner",
+        type=str,
+        default=REPO_OWNER if REPO_OWNER else (USERNAME if USERNAME else None),
+        help="The owner/org of repo code is executed from. To separate from authorisation (username) when required.",
+    )
     args = parser.parse_args()
 
     exclusive_repo_name_pattern = compile(r"^\s*(?:,?\s*[\w.-]+/[\w.-]+\s*)*,?\s*$")
@@ -163,9 +175,7 @@ def parse_args() -> tuple[str, str, str, str | dict, dict | str, int, str, bool,
         args.token is not None and isinstance(args.token, str) and len(args.token) > 0
     ), "A valid GitHub API token must be provided."
     assert args.username is None or (
-        args.username is not None
-        and isinstance(args.username, str)
-        and len(args.username) > 0
+        isinstance(args.username, str) and len(args.username) > 0
     ), "A valid GitHub account username must be provided."
     assert (
         args.repos is None
@@ -187,6 +197,9 @@ def parse_args() -> tuple[str, str, str, str | dict, dict | str, int, str, bool,
         f"The repository order of preference must match one of: "
         f"{list(enums.RepositoryOrderFieldEnum.__members__.values())}"
     )
+    assert (
+        args.owner is None or isinstance(args.owner, str) and len(args.owner) > 0
+    ), "A valid GitHub repo owner must be provided and must match ownership of the repo code/workflow is executed from."
 
     if args.theme:
         try:
@@ -210,6 +223,7 @@ def parse_args() -> tuple[str, str, str, str | dict, dict | str, int, str, bool,
         args.order,
         args.not_owned,
         args.not_contributed,
+        args.owner,
     )
 
 

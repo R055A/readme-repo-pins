@@ -20,7 +20,7 @@ class GenerateRepoPins:
     def __init__(
         self,
         repo_pins_data: list[dict[str, str | int | bool | dict[str, str]]],
-        username: str,
+        user_repo_owner: str,
         theme: str | dict,
         bg_img: dict | str = None,
     ) -> None:
@@ -30,7 +30,7 @@ class GenerateRepoPins:
             self.__repo_pins: list[RepoPinImgData] = [
                 RepoPinImgData.format_repo_pin_data(
                     repo_data=i,
-                    username=username,
+                    user_repo_owner=user_repo_owner,
                     theme_name=self.__get_repo_theme_data(theme=theme, repo_data_i=i),
                     bg_img=self.__get_repo_bg_img_data(bg_img=bg_img, repo_data_i=i),
                 )
