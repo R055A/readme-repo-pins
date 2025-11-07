@@ -2,6 +2,7 @@ from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageMediaError
 from gh_profile_repo_pins.repo_pins_img_media import RepoPinImgMedia
 import gh_profile_repo_pins.repo_pins_enum as enums
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 
 @dataclass(frozen=True)
@@ -11,6 +12,7 @@ class RepoPinImgData:
     fork_count: int
     issue_open_count: int
     issue_help_count: int
+    pull_request_count: int
     description: str
     url: str
     primary_language_name: str
@@ -24,10 +26,22 @@ class RepoPinImgData:
     bg_img: RepoPinImgMedia
 
     @classmethod
+    def repo_pages_url(cls, url: str) -> str:
+        if url:
+            url_parsed: list[str] = urlparse(url=url).path.strip("/").split("/")
+            if len(url_parsed) == 2:
+                owner, repo = url_parsed
+                url = f"{owner.lower()}.github.io"
+                if repo.lower() not in [url, ".github"]:
+                    url += f"/{repo}"
+                url = f"https://{url}"
+        return url
+
+    @classmethod
     def format_repo_pin_data(
         cls,
         repo_data: dict,
-        username: str,
+        user_repo_owner: str,
         theme_name: enums.RepoPinsImgThemeName = enums.RepoPinsImgThemeName.GITHUB_SOFT,
         bg_img: dict | str = None,
     ) -> "RepoPinImgData":
@@ -63,7 +77,9 @@ class RepoPinImgData:
 
         return RepoPinImgData(
             repo_name=(
-                f"{repo_owner}/" if username.lower() != repo_owner.lower() else ""
+                f"{repo_owner}/"
+                if user_repo_owner.lower() != repo_owner.lower()
+                else ""
             )
             + repo_data.get("name", ""),
             stargazer_count=repo_data.get("stargazerCount", 0) or 0,
@@ -74,8 +90,16 @@ class RepoPinImgData:
                 "totalCount", 0
             )
             or 0,
+            pull_request_count=(repo_data.get("pullRequests", {}) or {}).get(
+                "totalCount", 0
+            )
+            or 0,
             description=repo_data.get("description", "") or "",
-            url=repo_data.get("url", "") or "",
+            url=(
+                repo_data.get("url", "") or ""
+                if not (repo_data.get("isPrivate", False) or False)
+                else cls.repo_pages_url(url=repo_data.get("url", "") or "")
+            ),
             primary_language_name=primary_language_dict.get("name", "") or "",
             primary_language_color=primary_language_dict.get("color", "") or "",
             is_fork=repo_data.get("isFork", False) or "",
@@ -108,6 +132,7 @@ class RepoPinImgData:
             f"{f"\nforks: {self.fork_count}" if self.fork_count else ""}"
             f"{f"\nissues (open): {self.issue_open_count}" if self.issue_open_count else ""}"
             f"{f"\nissues (open, help wanted): {self.issue_help_count}" if self.issue_help_count else ""}"
+            f"{f"\npull requests (open): {self.pull_request_count}" if self.pull_request_count else ""}"
             f"\ntheme: {self.theme.value if self.theme else "None"}"
             f"\nbackground image: {f"\n{str(self.bg_img)}" if self.bg_img else "None\n"}"
         )

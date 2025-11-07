@@ -28,6 +28,7 @@ class ReadMeRepoPins:
         repo_priority_order: str = None,
         is_exclude_repos_owned: bool = False,
         is_exclude_repos_contributed: bool = False,
+        repo_owner: str = None,
     ) -> None:
         self.__log: Logger = get_logger()
         try:
@@ -89,6 +90,10 @@ class ReadMeRepoPins:
         self.__is_exclude_repos_owned: bool = is_exclude_repos_owned
         self.__is_exclude_repos_contributed: bool = is_exclude_repos_contributed
 
+        self.__user_repo_owner: str = (
+            repo_owner if repo_owner else self.__gh_api_client.username
+        )
+
     def __order_repos_by_exclusive_preference(self) -> None:
         self.__repo_pins = [
             repo
@@ -127,7 +132,7 @@ class ReadMeRepoPins:
     def __generate_readme_pin_grid_display(self) -> None:
         gen_repo_pins: GenerateRepoPins = GenerateRepoPins(
             repo_pins_data=self.__repo_pins,
-            username=self.__gh_api_client.username,
+            user_repo_owner=self.__user_repo_owner,
             theme=self.__theme,
             bg_img=self.__bg_img,
         )
