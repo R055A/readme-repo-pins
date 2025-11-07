@@ -20,6 +20,8 @@ class GitHubGraphQlClient:
       name
       stargazerCount
       forkCount
+      issues(states: OPEN) { totalCount }
+      issuesHelp: issues(labels: ["help wanted"], states: OPEN) { totalCount }
       owner { login }
       description
       url
@@ -156,7 +158,14 @@ class GitHubGraphQlClient:
                 timeout=self.__GRAPH_QL_DEFAULT_TIME_OUT,
             )
             if res.status_code == HTTPStatus.OK:
-                return res.json()
+                res_json: dict[str, str | list[str]] = res.json()
+                if (
+                    res_json.get("errors")
+                    and isinstance(res_json.get("errors")[0], dict)
+                    and res_json.get("errors")[0].get("message")
+                ):
+                    raise Exception(res_json.get("errors")[0].get("message"))
+                return res_json
             elif res.status_code == HTTPStatus.UNAUTHORIZED or not (
                 (res.json().get("data") or {}).get("viewer") or {}
             ).get("login", None):

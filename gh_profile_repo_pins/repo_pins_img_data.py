@@ -9,6 +9,8 @@ class RepoPinImgData:
     repo_name: str
     stargazer_count: int
     fork_count: int
+    issue_open_count: int
+    issue_help_count: int
     description: str
     url: str
     primary_language_name: str
@@ -66,6 +68,12 @@ class RepoPinImgData:
             + repo_data.get("name", ""),
             stargazer_count=repo_data.get("stargazerCount", 0) or 0,
             fork_count=repo_data.get("forkCount", 0) or 0,
+            issue_open_count=(repo_data.get("issues", {}) or {}).get("totalCount", 0)
+            or 0,
+            issue_help_count=(repo_data.get("issuesHelp", {}) or {}).get(
+                "totalCount", 0
+            )
+            or 0,
             description=repo_data.get("description", "") or "",
             url=repo_data.get("url", "") or "",
             primary_language_name=primary_language_dict.get("name", "") or "",
@@ -98,6 +106,8 @@ class RepoPinImgData:
             if self.primary_language_name else ""}"
             f"{f"\nstargazers: {self.stargazer_count}" if self.stargazer_count else ""}"
             f"{f"\nforks: {self.fork_count}" if self.fork_count else ""}"
+            f"{f"\nissues (open): {self.issue_open_count}" if self.issue_open_count else ""}"
+            f"{f"\nissues (open, help wanted): {self.issue_help_count}" if self.issue_help_count else ""}"
             f"\ntheme: {self.theme.value if self.theme else "None"}"
             f"\nbackground image: {f"\n{str(self.bg_img)}" if self.bg_img else "None\n"}"
         )
