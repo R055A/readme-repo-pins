@@ -37,6 +37,16 @@ class RepoPinImg:
         "2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 "
         "1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"
     )
+    __ICON_ISSUE_INNER: str = "M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+    __ICON_ISSUE_OUTER: str = (
+        "M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z"
+    )
+
+    __URL_PATH_STARS: str = "stargazers"
+    __URL_PATH_FORKS: str = "forks"
+    __URL_PATH_ISSUES: str = "issues"
+
+    __ISSUES_HELP_TXT: str = "help:"
 
     __BADGE_PUBLIC: str = "Public"
     __BADGE_PRIVATE: str = "Private"
@@ -453,12 +463,12 @@ class RepoPinImg:
 
     def __footer_stats(
         self,
-        stats_icon: str,
+        stats_icons: list[str],
         stats_count: int,
         footer_x: float,
         footer_y: float,
         footer_h: float,
-        is_star: bool = False,
+        url_path: str,
     ) -> float:
         if stats_count <= 0:
             return footer_x
@@ -466,22 +476,27 @@ class RepoPinImg:
         txt: str = self.__fmt_footer_stats_str(stats_count=stats_count)
         txt_w: float = self.__measure(txt=txt, font_px=self.__META_SIZE)
         self.__svg_str += (
-            f'<a href="{f'{self.__repo_pin_data.url}/{"stargazers" if is_star else "forks"}'}" target="_blank">'
+            f'<a href="{f'{self.__repo_pin_data.url}/{url_path}'}" target="_blank">'
             f"<g>"
             f"<rect "
             f'x="{footer_x:.2f}" '
-            f'y="{footer_y + footer_h:.2f}" '
+            f'y="{footer_y - footer_h:.2f}" '
             f'width="{txt_w + self.__PADDING:.2f}" '
             f'height="{footer_h:.2f}" '
             f'fill="transparent" '
             f'pointer-events="all" '
             f'style="cursor:pointer;" '
             f"/>"
-            f"{self.__render_icon(
-                path_d=stats_icon, 
-                x=footer_x,
-                y=footer_y - footer_h * 0.85,
-                size=self.__META_SIZE,
+            f"{"".join(
+                [
+                    self.__render_icon(
+                        path_d=stats_icon, 
+                        x=footer_x,
+                        y=footer_y - footer_h * 0.85,
+                        size=self.__META_SIZE,
+                    ) 
+                    for stats_icon in stats_icons
+                ]
             )}"
             f"<text "
             f'x="{footer_x + self.__PADDING:.2f}" '
@@ -495,6 +510,21 @@ class RepoPinImg:
         )
         return footer_x + txt_w + self.__PADDING + self.__META_SIZE
 
+    def __footer_txt(self, txt: str, txt_x: float, footer_y: float) -> float:
+        self.__svg_str += (
+            f"<text "
+            f'x="{txt_x}" '
+            f'y="{footer_y}" '
+            f'font-size="{self.__META_SIZE}" '
+            f'fill="var(--text)"'
+            f">"
+            f"{txt}"
+            f"</text>"
+        )
+        return (
+            txt_x + self.__measure(txt=txt, font_px=self.__META_SIZE) + self.__PADDING
+        )
+
     def __footer_primary_language(self, footer_y: float, footer_h: float) -> float:
         circle_cx: float = self.__PADDING + self.__ROUNDING
         self.__svg_str += (
@@ -507,24 +537,10 @@ class RepoPinImg:
         )
 
         txt_x: float = circle_cx + (self.__ROUNDING * 2)
-        self.__svg_str += (
-            f"<text "
-            f'x="{txt_x}" '
-            f'y="{footer_y}" '
-            f'font-size="{self.__META_SIZE}" '
-            f'fill="var(--text)"'
-            f">"
-            f"{self.__repo_pin_data.primary_language_name}"
-            f"</text>"
-        )
-
-        return (
-            txt_x
-            + self.__measure(
-                txt=self.__repo_pin_data.primary_language_name,
-                font_px=self.__META_SIZE,
-            )
-            + self.__PADDING
+        return self.__footer_txt(
+            txt=self.__repo_pin_data.primary_language_name,
+            txt_x=txt_x,
+            footer_y=footer_y,
         )
 
     def __footer(self, footer_y: float, footer_h: float) -> None:
@@ -533,21 +549,40 @@ class RepoPinImg:
             footer_x = self.__footer_primary_language(
                 footer_y=footer_y, footer_h=footer_h
             )
+
         footer_x = self.__footer_stats(
-            stats_icon=self.__ICON_STAR,
+            stats_icons=[self.__ICON_STAR],
             stats_count=self.__repo_pin_data.stargazer_count,
             footer_x=footer_x,
             footer_y=footer_y,
             footer_h=footer_h,
-            is_star=True,
+            url_path=self.__URL_PATH_STARS,
         )
-        self.__footer_stats(
-            stats_icon=self.__ICON_FORK,
+
+        footer_x = self.__footer_stats(
+            stats_icons=[self.__ICON_FORK],
             stats_count=self.__repo_pin_data.fork_count,
             footer_x=footer_x,
             footer_y=footer_y,
             footer_h=footer_h,
+            url_path=self.__URL_PATH_FORKS,
         )
+
+        footer_x = self.__footer_stats(
+            stats_icons=[self.__ICON_ISSUE_INNER, self.__ICON_ISSUE_OUTER],
+            stats_count=self.__repo_pin_data.issue_open_count,
+            footer_x=footer_x,
+            footer_y=footer_y,
+            footer_h=footer_h,
+            url_path=self.__URL_PATH_ISSUES,
+        )
+        if self.__repo_pin_data.issue_help_count:
+            footer_x -= self.__PADDING / 2
+            self.__footer_txt(
+                txt=f"({self.__ISSUES_HELP_TXT} {self.__repo_pin_data.issue_help_count})",
+                txt_x=footer_x,
+                footer_y=footer_y,
+            )
 
     def __bg_img(self) -> None:
         self.__repo_pin_data.bg_img.load()
@@ -661,6 +696,8 @@ def tst_svg_render(
             "name": "readme-repo-pins",
             "stargazerCount": 110_000,
             "forkCount": 9_900_000_000,
+            "issues": {"totalCount": 10},
+            "issuesHelp": {"totalCount": 1},
             "owner": {"login": "profile-icons"},
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
             "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
@@ -680,6 +717,8 @@ def tst_svg_render(
             "name": test_username,
             "stargazerCount": 0,
             "forkCount": 1,
+            "issues": {"totalCount": 1},
+            "issuesHelp": {"totalCount": 0},
             "owner": {"login": test_username},
             "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
             "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -694,6 +733,8 @@ def tst_svg_render(
             "name": "readme-repo-pins-readme-repo-pins",
             "stargazerCount": 0,
             "forkCount": 0,
+            "issues": {"totalCount": 0},
+            "issuesHelp": {"totalCount": 0},
             "owner": {"login": "profile-icons"},
             "description": "",
             "url": "https://github.com/profile-icons/readme-repo-pins",
