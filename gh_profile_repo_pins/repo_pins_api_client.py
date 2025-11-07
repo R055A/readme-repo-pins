@@ -161,7 +161,6 @@ class GitHubGraphQlClient:
                 res_json: dict[str, str | list[str]] = res.json()
                 if (
                     res_json.get("errors")
-                    and len(res_json.get("errors")) > 0
                     and isinstance(res_json.get("errors")[0], dict)
                     and res_json.get("errors")[0].get("message")
                 ):
