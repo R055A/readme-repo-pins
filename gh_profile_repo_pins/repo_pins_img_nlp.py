@@ -1028,7 +1028,7 @@ class RepoPinImgTranslator(GoogleTranslator):
         if not translations:
             input_txt_lang: str = detect(text=input_txt)
             translations[input_txt_lang] = input_txt
-            for target_lang in self.__dt_langs:
+            for target_lang in self.__COMMON_LANGS:
                 if target_lang in self.__dt_langs:
                     self.target = target_lang
                     translations[target_lang] = self.translate(text=input_txt)
