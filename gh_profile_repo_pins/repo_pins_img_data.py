@@ -13,6 +13,7 @@ class RepoPinImgData:
     issue_open_count: int
     issue_help_count: int
     pull_request_count: int
+    contributor_count: int
     description: str
     url: str
     primary_language_name: str
@@ -94,6 +95,15 @@ class RepoPinImgData:
                 "totalCount", 0
             )
             or 0,
+            contributor_count=len(
+                set(
+                    [
+                        (data.get("author", {}) or {}).get("login")
+                        for data in (repo_data.get("contribution_data", []) or [])
+                        if ((data.get("author", {}) or {}).get("login", "") or "") != ""
+                    ]
+                )
+            ),
             description=repo_data.get("description", "") or "",
             url=(
                 repo_data.get("url", "") or ""
@@ -133,6 +143,7 @@ class RepoPinImgData:
             f"{f"\nissues (open): {self.issue_open_count}" if self.issue_open_count else ""}"
             f"{f"\nissues (open, help wanted): {self.issue_help_count}" if self.issue_help_count else ""}"
             f"{f"\npull requests (open): {self.pull_request_count}" if self.pull_request_count else ""}"
+            f"{f"\ncontributors (commits to default branch): {self.contributor_count}" if self.contributor_count else ""}"
             f"\ntheme: {self.theme.value if self.theme else "None"}"
             f"\nbackground image: {f"\n{str(self.bg_img)}" if self.bg_img else "None\n"}"
         )

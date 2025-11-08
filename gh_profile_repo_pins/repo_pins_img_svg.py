@@ -47,11 +47,22 @@ class RepoPinImg:
         "1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 "
         "0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"
     )
+    __ICON_COLLAB: str = (
+        "M3.5 8a5.5 5.5 0 1 1 8.596 4.547 9.005 9.005 0 0 1 5.9 8.18.751.751 0 0 1-1.5.045 7.5 7.5 0 0 0-14.993 0 "
+        ".75.75 0 0 1-1.499-.044 9.005 9.005 0 0 1 5.9-8.181A5.496 5.496 0 0 1 3.5 8ZM9 4a4 4 0 1 0 0 8 4 4 0 0 0 "
+        "0-8Zm8.29 4c-.148 0-.292.01-.434.03a.75.75 0 1 1-.212-1.484 4.53 4.53 0 0 1 3.38 8.097 6.69 6.69 0 0 1 3.956 "
+        "6.107.75.75 0 0 1-1.5 0 5.193 5.193 0 0 0-3.696-4.972l-.534-.16v-1.676l.41-.209A3.03 3.03 0 0 0 17.29 8Z"
+    )
+    __ICON_USER: str = (
+        "M12 2.5a5.5 5.5 0 0 1 3.096 10.047 9.005 9.005 0 0 1 5.9 8.181.75.75 0 1 1-1.499.044 7.5 7.5 0 0 0-14.993 0 "
+        ".75.75 0 0 1-1.5-.045 9.005 9.005 0 0 1 5.9-8.18A5.5 5.5 0 0 1 12 2.5ZM8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0Z"
+    )
 
     __URL_PATH_STARS: str = "stargazers"
     __URL_PATH_FORKS: str = "forks"
     __URL_PATH_ISSUES: str = "issues"
     __URL_PATH_PULLS: str = "pulls"
+    __URL_PATH_CONTRIBUTORS: str = "graphs/contributors"
 
     __ISSUES_HELP_TXT: str = "help:"
 
@@ -481,6 +492,7 @@ class RepoPinImg:
         footer_x: float,
         footer_y: float,
         footer_h: float,
+        is_collab_icon: bool = False,
     ) -> float:
         if stats_count <= 0:
             return footer_x
@@ -504,7 +516,7 @@ class RepoPinImg:
                         path_d=stats_icon, 
                         x=footer_x,
                         y=footer_y - footer_h * 0.85,
-                        size=self.__META_SIZE,
+                        size=self.__META_SIZE if not is_collab_icon else self.__META_SIZE * 0.75,
                     ) 
                     for stats_icon in stats_icons
                 ]
@@ -619,12 +631,36 @@ class RepoPinImg:
                 self.__URL_PATH_PULLS if not self.__repo_pin_data.is_private else None
             ),
         )
-        self.__footer_stats(
+        footer_x = self.__footer_stats(
             stats_icons=[self.__ICON_PR],
             stats_count=self.__repo_pin_data.pull_request_count,
             footer_x=footer_x,
             footer_y=footer_y,
             footer_h=footer_h,
+        )
+        self.__href_link_close()
+
+        self.__href_link_open(
+            url=self.__repo_pin_data.url,
+            url_path=(
+                self.__URL_PATH_CONTRIBUTORS
+                if not self.__repo_pin_data.is_private
+                else None
+            ),
+        )
+        self.__footer_stats(
+            stats_icons=[
+                (
+                    self.__ICON_USER
+                    if self.__repo_pin_data.contributor_count == 1
+                    else self.__ICON_COLLAB
+                )
+            ],
+            stats_count=self.__repo_pin_data.contributor_count,
+            footer_x=footer_x,
+            footer_y=footer_y,
+            footer_h=footer_h,
+            is_collab_icon=True,
         )
         self.__href_link_close()
 
@@ -758,6 +794,10 @@ def tst_svg_render(
             "isTemplate": True,
             "isArchived": True,
             "isPrivate": False,
+            "contribution_data": [
+                {"author": {"login": test_username}},
+                {"author": {"login": "ANON"}},
+            ],
         },
         {
             "name": test_username,
@@ -776,6 +816,9 @@ def tst_svg_render(
             "isTemplate": True,
             "isArchived": False,
             "isPrivate": True,
+            "contribution_data": [
+                {"author": {"login": test_username}},
+            ],
         },
         {
             "name": "readme-repo-pins-readme-repo-pins",
@@ -793,6 +836,7 @@ def tst_svg_render(
             "isTemplate": False,
             "isArchived": False,
             "isPrivate": False,
+            "contribution_data": [],
         },
     ]
 
@@ -800,7 +844,7 @@ def tst_svg_render(
         for i, tst_repo_data in enumerate(tst_input):
             repo_pin: RepoPinImgData = RepoPinImgData.format_repo_pin_data(
                 repo_data=tst_repo_data,
-                username=test_username,
+                user_repo_owner=test_username,
                 theme_name=enums.RepoPinsImgThemeName(test_theme_name),
                 bg_img=test_bg_img,
             )

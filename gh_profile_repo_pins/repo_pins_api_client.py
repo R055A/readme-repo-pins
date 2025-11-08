@@ -1,8 +1,10 @@
+from requests import post, Response, Session, Timeout, HTTPError, RequestException
 from gh_profile_repo_pins.repo_pins_exceptions import GitHubGraphQlClientError
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import gh_profile_repo_pins.repo_pins_enum as enums
-from requests import post, Response
 from dataclasses import dataclass
 from http import HTTPStatus
+from time import sleep
 
 
 @dataclass
@@ -36,8 +38,12 @@ class GitHubGraphQlClient:
       createdAt
       updatedAt
     """
+    __GRAPH_QL_RATE_LIMIT_STR: str = """
+      rateLimit { cost }
+    """
     __GRAPH_QL_REPO_PIN_QUERY_STR: str = f"""
     query ($login: String!, $num: Int!) {{
+      {__GRAPH_QL_RATE_LIMIT_STR}
       user(login: $login) {{
         pinnedItems(
           first: $num
@@ -59,6 +65,7 @@ class GitHubGraphQlClient:
     """
     __GRAPH_QL_REPO_OWN_QUERY_STR: str = f"""
     query ($login: String!, $num: Int!, $after: String, $field: RepositoryOrderField!) {{
+      {__GRAPH_QL_RATE_LIMIT_STR}
       user(login: $login) {{
         repositories(
           first: $num
@@ -75,6 +82,7 @@ class GitHubGraphQlClient:
     """
     __GRAPH_QL_REPO_CONTRIBUTED_QUERY_STR: str = f"""
     query ($login: String!, $num: Int!, $after: String, $field: RepositoryOrderField!) {{
+      {__GRAPH_QL_RATE_LIMIT_STR}
       user(login: $login) {{
         repositoriesContributedTo(
           first: $num
@@ -92,23 +100,28 @@ class GitHubGraphQlClient:
     """
     __GRAPH_QL_REPO_NAME_QUERY_STR: str = f"""
     query ($owner: String!, $name: String!) {{
+      {__GRAPH_QL_RATE_LIMIT_STR}
       repository(owner: $owner, name: $name) {{
         {__GRAPH_QL_REPO_QUERY_NODE_DATA}
       }}
     }}
     """
-    __GRAPH_QL_VERIFY_TOKEN_QUERY: str = """
-    query { viewer { login } }
+    __GRAPH_QL_VERIFY_TOKEN_QUERY: str = f"""
+    query {{ 
+      {__GRAPH_QL_RATE_LIMIT_STR} 
+      viewer {{ login }} 
+    }}
     """
-    __GRAPH_QL_USER_DATA_QUERY: str = """
-    query($login: String!) {
-      user(login: $login) {
+    __GRAPH_QL_USER_DATA_QUERY: str = f"""
+    query($login: String!) {{
+      {__GRAPH_QL_RATE_LIMIT_STR}
+      user(login: $login) {{
         login
         name
         databaseId
         createdAt
-      }
-    }
+      }}
+    }}
     """
     __GRAPH_QL_DEFAULT_TIME_OUT: int = 10
     __DEFAULT_FETCH_LIMIT: int = 100
@@ -116,6 +129,8 @@ class GitHubGraphQlClient:
     def __init__(
         self, api_token: str, username: str = None, fetch_limit: int = None
     ) -> None:
+        self.__session: Session = Session()
+        self.__max_workers: int = 8
         self.__api_headers: dict[str, str] = {
             "Accept": "application/vnd.github+json",
             "Connection": "keep-alive",
@@ -125,6 +140,7 @@ class GitHubGraphQlClient:
         self.__fetch_limit: int = (
             fetch_limit if fetch_limit else self.__DEFAULT_FETCH_LIMIT
         )
+        self.__fetch_cost_ttl: int = 0
 
         try:
             self.__gh_config_data: GitHubCredentialData = GitHubCredentialData(
@@ -150,6 +166,14 @@ class GitHubGraphQlClient:
             )}"
         )
 
+    def __update_fetch_cost(self, res_json: dict = None) -> None:
+        self.__fetch_cost_ttl += (
+            ((res_json.get("data", {}) or {}).get("rateLimit", {}) or {}).get("cost", 0)
+            or 0
+            if res_json
+            else 1
+        )
+
     def __post_request(self, body_json: dict) -> dict[str, str | list[str]] | None:
         try:
             res: Response = post(
@@ -166,6 +190,7 @@ class GitHubGraphQlClient:
                     and res_json.get("errors")[0].get("message")
                 ):
                     raise Exception(res_json.get("errors")[0].get("message"))
+                self.__update_fetch_cost(res_json=res_json)
                 return res_json
             elif res.status_code == HTTPStatus.UNAUTHORIZED or not (
                 (res.json().get("data") or {}).get("viewer") or {}
@@ -237,6 +262,55 @@ class GitHubGraphQlClient:
 
         return res_node_data
 
+    def __fetch_repo_contribution_data(
+        self, repo_owner: str, repo_name: str
+    ) -> list | None:
+        query_str: str = (
+            f"https://api.github.com/repos/{repo_owner}/{repo_name}/stats/contributors"
+        )
+        try:
+            for i in range(self.__GRAPH_QL_DEFAULT_TIME_OUT):
+                res: Response = self.__session.get(
+                    url=query_str,
+                    headers=self.__api_headers,
+                    timeout=self.__GRAPH_QL_DEFAULT_TIME_OUT,
+                )
+                self.__update_fetch_cost()
+                if res.status_code == HTTPStatus.OK:
+                    return res.json() or []
+                if res.status_code == HTTPStatus.ACCEPTED:
+                    sleep(min(2**i, 30))
+                    continue
+                res.raise_for_status()
+        except Exception as err:
+            raise GitHubGraphQlClientError(msg=f"API request error: {str(err)}")
+
+    def __fetch_repos_contribution_data_parallel(self, repos: list[dict]) -> list[dict]:
+        raw_contribution_data: dict = {}
+        with ThreadPoolExecutor(max_workers=self.__max_workers) as thread_pool:
+            for i, repo in enumerate(repos):
+                raw_contribution_data[
+                    thread_pool.submit(
+                        self.__fetch_repo_contribution_data,
+                        ((repo.get("owner", {}) or {}).get("login", "") or "").strip(),
+                        (repo.get("name", "") or "").strip(),
+                    )
+                ] = i
+
+            for i_complete in as_completed(fs=raw_contribution_data):
+                i = raw_contribution_data[i_complete]
+                try:
+                    repos[i]["contribution_data"] = i_complete.result()
+                except (
+                    GitHubGraphQlClientError,
+                    Timeout,
+                    ConnectionError,
+                    HTTPError,
+                    RequestException,
+                ):
+                    repos[i]["contribution_data"] = None
+        return repos
+
     @property
     def user_id(self) -> int | None:
         return self.__gh_config_data.user_id
@@ -249,9 +323,13 @@ class GitHubGraphQlClient:
     def username(self) -> str:
         return self.__gh_config_data.username
 
+    @property
+    def fetch_cost(self) -> int:
+        return self.__fetch_cost_ttl
+
     def fetch_pinned_repo_data(
         self, num_repos: int = None
-    ) -> list[dict[str, str | int | dict[str, str]]]:
+    ) -> list[dict[str, str | int | dict | list]]:
         pinned_repos: dict = self.__process_repo_req(
             body_json={
                 "query": self.__GRAPH_QL_REPO_PIN_QUERY_STR,
@@ -262,15 +340,17 @@ class GitHubGraphQlClient:
             },
             repo_data_key="pinnedItems",
         )
-        return [edge["node"] for edge in pinned_repos.get("edges", [])]
+        return self.__fetch_repos_contribution_data_parallel(
+            repos=[edge["node"] for edge in pinned_repos.get("edges", [])]
+        )
 
     def fetch_owned_or_contributed_to_repo_data(
         self,
         order_field: enums.RepositoryOrderFieldEnum = None,
         pinned_repo_urls: list[str] = None,
         is_contributed: bool = False,
-    ) -> list[dict[str, str | int | dict[str, str]]]:
-        return self.__paginate_fetch_repo_data(
+    ) -> list[dict[str, str | int | dict | list]]:
+        owned_or_contributed_repos: list[dict] = self.__paginate_fetch_repo_data(
             body_json={
                 "query": (
                     self.__GRAPH_QL_REPO_CONTRIBUTED_QUERY_STR
@@ -292,13 +372,16 @@ class GitHubGraphQlClient:
             ),
             pinned_repo_urls=pinned_repo_urls if pinned_repo_urls else [],
         )
+        return self.__fetch_repos_contribution_data_parallel(
+            repos=owned_or_contributed_repos
+        )
 
     def fetch_single_repo_data(
         self,
         repo_owner: str = None,
         repo_name: str = None,
-    ) -> dict[str, str | int | dict[str, str]]:
-        return self.__process_repo_req(
+    ) -> dict[str, str | int | dict | list]:
+        single_repo: dict = self.__process_repo_req(
             body_json={
                 "query": self.__GRAPH_QL_REPO_NAME_QUERY_STR,
                 "variables": {
@@ -310,3 +393,7 @@ class GitHubGraphQlClient:
             repo_data_key="repository",
             is_user_data=False,
         )
+        single_repo["contribution_data"] = self.__fetch_repo_contribution_data(
+            repo_owner=repo_owner, repo_name=repo_name
+        )
+        return single_repo
