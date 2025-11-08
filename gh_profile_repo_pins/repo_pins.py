@@ -12,7 +12,7 @@ import gh_profile_repo_pins.repo_pins_enum as enums
 class ReadMeRepoPins:
 
     __DEFAULT_MAX_NUM_PINS: int = 6
-    __LIMIT_MAX_NUM_PINS: int = 20
+    __LIMIT_MAX_NUM_PINS: int = 40
     __DEFAULT_ORDER_FIELD: enums.RepositoryOrderFieldEnum = (
         enums.RepositoryOrderFieldEnum.STARGAZERS
     )
@@ -157,33 +157,39 @@ class ReadMeRepoPins:
                             )
                         )
             else:
-                self.__repo_pins: list[dict[str, str | int | dict[str, str]]] = (
+                self.__repo_pins: list[dict[str, str | int | dict]] = (
                     self.__gh_api_client.fetch_pinned_repo_data()
                 )
+                owned_repos: list[dict[str, str | int | dict]] = []
+                contributed_repos: list[dict[str, str | int | dict]] = []
                 if (
                     len(self.__repo_pins) < self.__max_num_pins
                     and not self.__is_exclude_repos_owned
                 ):
-                    owned_repos: list[dict[str, str | int | dict[str, str]]] = (
+                    owned_repos.extend(
                         self.__gh_api_client.fetch_owned_or_contributed_to_repo_data(
                             order_field=self.__repo_priority_order,
                             pinned_repo_urls=[d["url"] for d in self.__repo_pins],
                         )
                     )
-                    self.__repo_pins.extend(owned_repos)
                 if (
                     len(self.__repo_pins) < self.__max_num_pins
                     and not self.__is_exclude_repos_contributed
                 ):
-                    contributed_repos: list[dict[str, str | int | dict[str, str]]] = (
+                    contributed_repos.extend(
                         self.__gh_api_client.fetch_owned_or_contributed_to_repo_data(
                             order_field=self.__repo_priority_order,
                             pinned_repo_urls=[d["url"] for d in self.__repo_pins],
                             is_contributed=True,
                         )
                     )
-                    self.__repo_pins.extend(contributed_repos)
+                self.__repo_pins.extend(owned_repos)
+                self.__repo_pins.extend(contributed_repos)
             self.__order_repos_by_preference()
+
+            self.__log.info(
+                msg=f"Total API fetch cost: {self.__gh_api_client.fetch_cost}"
+            )
         except GitHubGraphQlClientError as err:
             self.__log.error(msg=err.msg)
             exit(1)
