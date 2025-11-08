@@ -11,7 +11,7 @@ import gh_profile_repo_pins.repo_pins_enum as enums
 
 class ReadMeRepoPins:
 
-    __DEFAULT_MAX_NUM_PINS: int = 100
+    __DEFAULT_MAX_NUM_PINS: int = 6
     __LIMIT_MAX_NUM_PINS: int = 50
     __DEFAULT_ORDER_FIELD: enums.RepositoryOrderFieldEnum = (
         enums.RepositoryOrderFieldEnum.STARGAZERS
@@ -187,10 +187,9 @@ class ReadMeRepoPins:
                 self.__repo_pins.extend(contributed_repos)
             self.__order_repos_by_preference()
 
-            self.__log.debug(
+            self.__log.info(
                 msg=f"Total API fetch cost: {self.__gh_api_client.fetch_cost}"
             )
-            exit(0)
         except GitHubGraphQlClientError as err:
             self.__log.error(msg=err.msg)
             exit(1)

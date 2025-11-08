@@ -3,6 +3,7 @@ from gh_profile_repo_pins.repo_pins_exceptions import GitHubGraphQlClientError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import gh_profile_repo_pins.repo_pins_enum as enums
 from dataclasses import dataclass
+from threading import local, Lock
 from http import HTTPStatus
 from time import sleep
 
@@ -129,18 +130,21 @@ class GitHubGraphQlClient:
     def __init__(
         self, api_token: str, username: str = None, fetch_limit: int = None
     ) -> None:
-        self.__session: Session = Session()
+        self.__local_thread: local = local()
         self.__max_workers: int = 8
+
         self.__api_headers: dict[str, str] = {
             "Accept": "application/vnd.github+json",
             "Connection": "keep-alive",
             "User-Agent": "hf-pr-counter/1.0",
             "Authorization": f"Bearer {api_token}",
         }
+
         self.__fetch_limit: int = (
             fetch_limit if fetch_limit else self.__DEFAULT_FETCH_LIMIT
         )
         self.__fetch_cost_ttl: int = 0
+        self.__fetch_cost_update_lock: Lock = Lock()
 
         try:
             self.__gh_config_data: GitHubCredentialData = GitHubCredentialData(
@@ -167,12 +171,13 @@ class GitHubGraphQlClient:
         )
 
     def __update_fetch_cost(self, res_json: dict = None) -> None:
-        self.__fetch_cost_ttl += (
-            ((res_json.get("data", {}) or {}).get("rateLimit", {}) or {}).get("cost", 0)
-            or 0
-            if res_json
-            else 1
-        )
+        with self.__fetch_cost_update_lock:
+            self.__fetch_cost_ttl += (
+                ((res_json.get("data", {}) or {}).get("rateLimit", {}) or {}).get("cost", 0)
+                or 0
+                if res_json
+                else 1
+            )
 
     def __post_request(self, body_json: dict) -> dict[str, str | list[str]] | None:
         try:
@@ -262,6 +267,13 @@ class GitHubGraphQlClient:
 
         return res_node_data
 
+    def __session(self) -> Session:
+        if not hasattr(self.__local_thread, Session.__name__.lower()):
+            thread_session: Session = Session()
+            thread_session.headers.update(self.__api_headers)
+            self.__local_thread.session = thread_session
+        return self.__local_thread.session
+
     def __fetch_repo_contribution_data(
         self, repo_owner: str, repo_name: str
     ) -> list | None:
@@ -270,7 +282,7 @@ class GitHubGraphQlClient:
         )
         try:
             for i in range(self.__GRAPH_QL_DEFAULT_TIME_OUT):
-                res: Response = self.__session.get(
+                res: Response = self.__session().get(
                     url=query_str,
                     headers=self.__api_headers,
                     timeout=self.__GRAPH_QL_DEFAULT_TIME_OUT,
@@ -308,7 +320,7 @@ class GitHubGraphQlClient:
                     HTTPError,
                     RequestException,
                 ):
-                    repos[i]["contribution_data"] = None
+                    repos[i]["contribution_data"] = []
         return repos
 
     @property
