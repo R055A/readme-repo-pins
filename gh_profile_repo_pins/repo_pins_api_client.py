@@ -173,7 +173,9 @@ class GitHubGraphQlClient:
     def __update_fetch_cost(self, res_json: dict = None) -> None:
         with self.__fetch_cost_update_lock:
             self.__fetch_cost_ttl += (
-                ((res_json.get("data", {}) or {}).get("rateLimit", {}) or {}).get("cost", 0)
+                ((res_json.get("data", {}) or {}).get("rateLimit", {}) or {}).get(
+                    "cost", 0
+                )
                 or 0
                 if res_json
                 else 1
