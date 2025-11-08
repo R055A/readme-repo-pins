@@ -12,7 +12,7 @@ import gh_profile_repo_pins.repo_pins_enum as enums
 class ReadMeRepoPins:
 
     __DEFAULT_MAX_NUM_PINS: int = 6
-    __LIMIT_MAX_NUM_PINS: int = 50
+    __LIMIT_MAX_NUM_PINS: int = 40
     __DEFAULT_ORDER_FIELD: enums.RepositoryOrderFieldEnum = (
         enums.RepositoryOrderFieldEnum.STARGAZERS
     )

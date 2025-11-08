@@ -98,9 +98,9 @@ class RepoPinImgData:
             contributor_count=len(
                 set(
                     [
-                        (data.get("author", {}) or {}).get("login")
+                        data.get("login").lower()
                         for data in (repo_data.get("contribution_data", []) or [])
-                        if ((data.get("author", {}) or {}).get("login", "") or "") != ""
+                        if (data.get("login", "") or "") != ""
                     ]
                 )
             ),
@@ -143,7 +143,7 @@ class RepoPinImgData:
             f"{f"\nissues (open): {self.issue_open_count}" if self.issue_open_count else ""}"
             f"{f"\nissues (open, help wanted): {self.issue_help_count}" if self.issue_help_count else ""}"
             f"{f"\npull requests (open): {self.pull_request_count}" if self.pull_request_count else ""}"
-            f"{f"\ncontributors (commits to default branch): {self.contributor_count}" if self.contributor_count else ""}"
+            f"{f"\ncontributors (default branch commits): {self.contributor_count}" if self.contributor_count else ""}"
             f"\ntheme: {self.theme.value if self.theme else "None"}"
             f"\nbackground image: {f"\n{str(self.bg_img)}" if self.bg_img else "None\n"}"
         )

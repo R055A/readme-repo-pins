@@ -1,4 +1,12 @@
-from requests import post, Response, Session, Timeout, HTTPError, RequestException
+from requests import (
+    post,
+    Response,
+    Session,
+    Timeout,
+    HTTPError,
+    RequestException,
+    ConnectionError,
+)
 from gh_profile_repo_pins.repo_pins_exceptions import GitHubGraphQlClientError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import gh_profile_repo_pins.repo_pins_enum as enums
@@ -124,7 +132,7 @@ class GitHubGraphQlClient:
       }}
     }}
     """
-    __GRAPH_QL_DEFAULT_TIME_OUT: int = 10
+    __DEFAULT_TIME_OUT: int = 10
     __DEFAULT_FETCH_LIMIT: int = 100
 
     def __init__(
@@ -187,7 +195,7 @@ class GitHubGraphQlClient:
                 self.__GRAPH_QL_URL,
                 headers=self.__api_headers,
                 json=body_json,
-                timeout=self.__GRAPH_QL_DEFAULT_TIME_OUT,
+                timeout=self.__DEFAULT_TIME_OUT,
             )
             if res.status_code == HTTPStatus.OK:
                 res_json: dict[str, str | list[str]] = res.json()
@@ -280,28 +288,48 @@ class GitHubGraphQlClient:
         self, repo_owner: str, repo_name: str
     ) -> list | None:
         query_str: str = (
-            f"https://api.github.com/repos/{repo_owner}/{repo_name}/stats/contributors"
+            f"https://api.github.com/repos/{repo_owner}/{repo_name}/contributors"
         )
+        session: Session = self.__session()
+        contribution_data: list = []
+        page: int = 1
+
         try:
-            for i in range(self.__GRAPH_QL_DEFAULT_TIME_OUT):
-                res: Response = self.__session().get(
-                    url=query_str,
-                    headers=self.__api_headers,
-                    timeout=self.__GRAPH_QL_DEFAULT_TIME_OUT,
-                )
-                self.__update_fetch_cost()
-                if res.status_code == HTTPStatus.OK:
-                    return res.json() or []
-                if res.status_code == HTTPStatus.ACCEPTED:
-                    sleep(min(2**i, 30))
-                    continue
-                res.raise_for_status()
+            while True:
+                res_data: list = []
+                for i in range(self.__DEFAULT_TIME_OUT):
+                    res: Response = session.get(
+                        url=query_str,
+                        headers=self.__api_headers,
+                        params={
+                            "per_page": self.__DEFAULT_FETCH_LIMIT,
+                            "page": page,
+                        },
+                        timeout=self.__DEFAULT_TIME_OUT,
+                    )
+                    self.__update_fetch_cost()
+
+                    if res.status_code == HTTPStatus.OK:
+                        res_data.extend(res.json() or [])
+                        break
+                    if res.status_code == HTTPStatus.ACCEPTED:
+                        sleep(min(2**i, 30))
+                        continue
+                    res.raise_for_status()
+
+                if not res_data:
+                    break
+                contribution_data.extend(res_data)
+                page += 1
         except Exception as err:
             raise GitHubGraphQlClientError(msg=f"API request error: {str(err)}")
+        return contribution_data
 
     def __fetch_repos_contribution_data_parallel(self, repos: list[dict]) -> list[dict]:
         raw_contribution_data: dict = {}
-        with ThreadPoolExecutor(max_workers=self.__max_workers) as thread_pool:
+        with ThreadPoolExecutor(
+            max_workers=min(self.__max_workers, max(1, len(repos)))
+        ) as thread_pool:
             for i, repo in enumerate(repos):
                 raw_contribution_data[
                     thread_pool.submit(

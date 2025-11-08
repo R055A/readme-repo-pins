@@ -64,8 +64,6 @@ class RepoPinImg:
     __URL_PATH_PULLS: str = "pulls"
     __URL_PATH_CONTRIBUTORS: str = "graphs/contributors"
 
-    __ISSUES_HELP_TXT: str = "help:"
-
     __BADGE_PUBLIC: str = "Public"
     __BADGE_PRIVATE: str = "Private"
     __BADGE_ARCHIVE: str = " archive"
@@ -467,23 +465,10 @@ class RepoPinImg:
         )
 
     def __fmt_footer_stats_str(self, stats_count: int) -> str:
-        return (
-            f"{stats_count / self.__MAX_STAT_NUMS:.1f}B".rstrip("0").rstrip(".")
-            if stats_count >= self.__MAX_STAT_NUMS
-            else (
-                f"{stats_count / (self.__MAX_STAT_NUMS / 1_000):.1f}M".rstrip(
-                    "0"
-                ).rstrip(".")
-                if stats_count >= (self.__MAX_STAT_NUMS / 1_000)
-                else (
-                    f"{stats_count / (self.__MAX_STAT_NUMS / 1_000_000):.1f}k".rstrip(
-                        "0"
-                    ).rstrip(".")
-                    if stats_count >= (self.__MAX_STAT_NUMS / 1_000_000)
-                    else str(stats_count)
-                )
-            )
-        )
+        for div, mag in [(self.__MAX_STAT_NUMS, "B"), (1_000_000, "M"), (1_000, "K")]:
+            if stats_count >= div:
+                return f"{stats_count / div:.1f}".rstrip("0").rstrip(".") + mag
+        return str(stats_count)
 
     def __footer_stats(
         self,
@@ -532,13 +517,15 @@ class RepoPinImg:
         )
         return footer_x + txt_w + self.__PADDING + self.__META_SIZE
 
-    def __footer_txt(self, txt: str, txt_x: float, footer_y: float) -> float:
+    def __footer_txt(
+        self, txt: str, txt_x: float, footer_y: float, fill: str = "var(--text)"
+    ) -> float:
         self.__svg_str += (
             f"<text "
             f'x="{txt_x}" '
             f'y="{footer_y}" '
             f'font-size="{self.__META_SIZE}" '
-            f'fill="var(--text)"'
+            f'fill="{fill}"'
             f">"
             f"{txt}"
             f"</text>"
@@ -618,9 +605,10 @@ class RepoPinImg:
         if self.__repo_pin_data.issue_help_count:
             footer_x -= self.__PADDING / 2
             footer_x = self.__footer_txt(
-                txt=f"({self.__ISSUES_HELP_TXT} {self.__repo_pin_data.issue_help_count})",
+                txt=f"({self.__fmt_footer_stats_str(stats_count=self.__repo_pin_data.issue_help_count)})",
                 txt_x=footer_x,
                 footer_y=footer_y,
+                fill="var(--danger)",
             )
             footer_x -= self.__PADDING / 2
         self.__href_link_close()
@@ -795,8 +783,8 @@ def tst_svg_render(
             "isArchived": True,
             "isPrivate": False,
             "contribution_data": [
-                {"author": {"login": test_username}},
-                {"author": {"login": "ANON"}},
+                {"login": test_username},
+                {"login": "ANON"},
             ],
         },
         {
@@ -817,7 +805,7 @@ def tst_svg_render(
             "isArchived": False,
             "isPrivate": True,
             "contribution_data": [
-                {"author": {"login": test_username}},
+                {"login": test_username},
             ],
         },
         {
