@@ -114,7 +114,7 @@ where:
 
 ### Number
 
-The optional `NUM_REPO_PINS` configuration controls the maximum possible number of repository pins to generate up to a hard limit of `20`.
+The optional `NUM_REPO_PINS` configuration controls the maximum possible number of repository pins to generate up to a hard limit of `40`.
 
 This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
 
