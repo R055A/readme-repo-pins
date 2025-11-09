@@ -2,8 +2,10 @@ from gh_profile_repo_pins.repo_pins_exceptions import (
     GitHubGraphQlClientError,
     RepoPinImageThemeError,
     RepoPinImageMediaError,
+    RepoPinStatsError,
 )
-from gh_profile_repo_pins.repo_pins_api_client import GitHubGraphQlClient
+from gh_profile_repo_pins.repo_pins_data.repo_pins_api import GitHubApiClient
+from gh_profile_repo_pins.repo_pins_data.repo_pins_stats import RepoPinStats
 from gh_profile_repo_pins.utils import set_git_creds, get_logger, Logger
 from gh_profile_repo_pins.repo_pins_generate import GenerateRepoPins
 import gh_profile_repo_pins.repo_pins_enum as enums
@@ -29,10 +31,11 @@ class ReadMeRepoPins:
         is_exclude_repos_owned: bool = False,
         is_exclude_repos_contributed: bool = False,
         repo_owner: str = None,
+        is_contribution_stats: bool = False,
     ) -> None:
         self.__log: Logger = get_logger()
         try:
-            self.__gh_api_client: GitHubGraphQlClient = GitHubGraphQlClient(
+            self.__gh_api_client: GitHubApiClient = GitHubApiClient(
                 api_token=api_token, username=username
             )
         except GitHubGraphQlClientError as err:
@@ -94,13 +97,18 @@ class ReadMeRepoPins:
             repo_owner if repo_owner else self.__gh_api_client.username
         )
 
+        self.__is_contribution_stats: bool = is_contribution_stats
+        self.__repo_stats: RepoPinStats = (
+            RepoPinStats(gh_token=api_token) if self.__is_contribution_stats else None
+        )
+
     def __order_repos_by_exclusive_preference(self) -> None:
         self.__repo_pins = [
             repo
             for repo in self.__repo_pins
             for explicit_repo in self.__repo_names_exclusive
-            if repo.get("url")
-            and repo.get("url")
+            if repo.get(enums.RepoPinsResDictKeys.URL.value)
+            and repo.get(enums.RepoPinsResDictKeys.URL.value)
             .strip()
             .rstrip("/")
             .lower()
@@ -133,6 +141,7 @@ class ReadMeRepoPins:
         gen_repo_pins: GenerateRepoPins = GenerateRepoPins(
             repo_pins_data=self.__repo_pins,
             user_repo_owner=self.__user_repo_owner,
+            login=self.__gh_api_client.user_name.strip().lower(),
             theme=self.__theme,
             bg_img=self.__bg_img,
         )
@@ -144,9 +153,11 @@ class ReadMeRepoPins:
                 for owner_repo in self.__repo_names_exclusive:
                     if not any(
                         [
-                            d["url"].lower().endswith(owner_repo.lower())
+                            d[enums.RepoPinsResDictKeys.URL.value]
+                            .lower()
+                            .endswith(owner_repo.lower())
                             for d in self.__repo_pins
-                            if d.get("url")
+                            if d.get(enums.RepoPinsResDictKeys.URL.value)
                         ]
                     ):
                         owner, repo = owner_repo.split("/")
@@ -169,7 +180,10 @@ class ReadMeRepoPins:
                     owned_repos.extend(
                         self.__gh_api_client.fetch_owned_or_contributed_to_repo_data(
                             order_field=self.__repo_priority_order,
-                            pinned_repo_urls=[d["url"] for d in self.__repo_pins],
+                            pinned_repo_urls=[
+                                d[enums.RepoPinsResDictKeys.URL.value]
+                                for d in self.__repo_pins
+                            ],
                         )
                     )
                 if (
@@ -179,7 +193,10 @@ class ReadMeRepoPins:
                     contributed_repos.extend(
                         self.__gh_api_client.fetch_owned_or_contributed_to_repo_data(
                             order_field=self.__repo_priority_order,
-                            pinned_repo_urls=[d["url"] for d in self.__repo_pins],
+                            pinned_repo_urls=[
+                                d[enums.RepoPinsResDictKeys.URL.value]
+                                for d in self.__repo_pins
+                            ],
                             is_contributed=True,
                         )
                     )
@@ -187,10 +204,19 @@ class ReadMeRepoPins:
                 self.__repo_pins.extend(contributed_repos)
             self.__order_repos_by_preference()
 
+            if self.__is_contribution_stats and self.__repo_stats:
+                self.__repo_pins = self.__repo_stats.fetch_contribution_stats(
+                    repo_list=self.__repo_pins
+                )
+            else:
+                self.__repo_pins = self.__gh_api_client.fetch_contributor_stats(
+                    repo_list=self.__repo_pins
+                )
+
             self.__log.info(
                 msg=f"Total API fetch cost: {self.__gh_api_client.fetch_cost}"
             )
-        except GitHubGraphQlClientError as err:
+        except (GitHubGraphQlClientError, RepoPinStatsError) as err:
             self.__log.error(msg=err.msg)
             exit(1)
 

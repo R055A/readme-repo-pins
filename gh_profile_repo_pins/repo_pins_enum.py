@@ -78,6 +78,40 @@ class RepoPinsImgThemeMode(Enum):
     DARK = "dark"
 
 
+class RepoPinsResDictKeys(Enum):
+    DATA = "data"
+    ERROR = "error"
+    MESSAGE = "message"
+    RATE_LIMIT = "rateLimit"
+    COST = "cost"
+    URL = "url"
+    USER = "user"
+    VIEWER = "viewer"
+    NAME = "name"
+    OWNER = "owner"
+    LOGIN = "login"
+    PARENT = "parent"
+    OWNER_REPO = "nameWithOwner"
+    STARS = "stargazerCount"
+    CONTRIBUTION = "contribution_data"
+    STATS = "stats"
+    FORK_COUNT = "forkCount"
+    ISSUES = "issues"
+    ISSUES_HELP = "issuesHelp"
+    PULL_REQUESTS = "pullRequests"
+    DESCRIPTION = "description"
+    IS_FORK = "isFork"
+    IS_TEMPLATE = "isTemplate"
+    IS_ARCHIVE = "isArchive"
+    IS_PRIVATE = "isPrivate"
+    TTL_COUNT = "totalCount"
+    LANGUAGE = "primaryLanguage"
+    COLOR = "color"
+    IMG = "img"
+    CREATED_AT = "createdAt"
+    DB_ID = "databaseId"
+
+
 def update_enum(enum_cls: type[Enum], enum_dict: dict[str, str]) -> None:
     updated_enum: Enum = Enum(
         enum_cls.__name__,

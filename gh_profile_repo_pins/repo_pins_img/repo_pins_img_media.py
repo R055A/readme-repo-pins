@@ -51,7 +51,7 @@ class RepoPinImgMedia:
 
     def __repr__(self) -> str:
         return (
-            f"img: {self.__bg_img}\n"
+            f"{enums.RepoPinsResDictKeys.IMG.value}: {self.__bg_img}\n"
             f"align: {self.__bg_img_align}\n"
             f"mode: {self.__bg_img_mode}\n"
             f"opacity: {self.__bg_img_opacity}\n"

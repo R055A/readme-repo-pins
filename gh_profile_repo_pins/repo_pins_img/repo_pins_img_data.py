@@ -1,5 +1,5 @@
 from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageMediaError
-from gh_profile_repo_pins.repo_pins_img_media import RepoPinImgMedia
+from gh_profile_repo_pins.repo_pins_img.repo_pins_img_media import RepoPinImgMedia
 import gh_profile_repo_pins.repo_pins_enum as enums
 from dataclasses import dataclass
 from urllib.parse import urlparse
@@ -14,6 +14,7 @@ class RepoPinImgData:
     issue_help_count: int
     pull_request_count: int
     contributor_count: int
+    contribution_perc: float
     description: str
     url: str
     primary_language_name: str
@@ -43,20 +44,27 @@ class RepoPinImgData:
         cls,
         repo_data: dict,
         user_repo_owner: str,
+        login: str,
         theme_name: enums.RepoPinsImgThemeName = enums.RepoPinsImgThemeName.GITHUB_SOFT,
         bg_img: dict | str = None,
     ) -> "RepoPinImgData":
         repo_owner = (
-            repo_data.get("url", "").split("/")[-2]
-            if len(repo_data.get("url", "").split("/")) > 1
+            repo_data.get(enums.RepoPinsResDictKeys.URL.value, "").split("/")[-2]
+            if len(repo_data.get(enums.RepoPinsResDictKeys.URL.value, "").split("/"))
+            > 1
             else ""
         )
         repo_parent = (
-            repo_data.get("parent", {}).get("nameWithOwner", "") or ""
-            if repo_data.get("parent", {})
+            repo_data.get(enums.RepoPinsResDictKeys.PARENT.value, {}).get(
+                enums.RepoPinsResDictKeys.OWNER_REPO.value, ""
+            )
+            or ""
+            if repo_data.get(enums.RepoPinsResDictKeys.PARENT.value, {})
             else None
         )
-        primary_language_dict = repo_data.get("primaryLanguage", {}) or {}
+        primary_language_dict = (
+            repo_data.get(enums.RepoPinsResDictKeys.LANGUAGE.value, {}) or {}
+        )
 
         try:
             bg_img = (
@@ -68,7 +76,7 @@ class RepoPinImgData:
                 if bg_img
                 and (
                     isinstance(bg_img, dict)
-                    and bg_img.get("img")
+                    and bg_img.get(enums.RepoPinsResDictKeys.IMG.value)
                     or isinstance(bg_img, str)
                 )
                 else None
@@ -76,47 +84,79 @@ class RepoPinImgData:
         except ValueError as err:
             raise RepoPinImageMediaError(msg=f"Background image error: {str(err)}")
 
+        contributions: dict[str, int] = {
+            data.get(enums.RepoPinsResDictKeys.LOGIN.value).strip(): data.get(
+                enums.RepoPinsResDictKeys.STATS.value, 0
+            )
+            for data in (
+                repo_data.get(enums.RepoPinsResDictKeys.CONTRIBUTION.value, []) or []
+            )
+            if (data.get(enums.RepoPinsResDictKeys.LOGIN.value, "") or "") != ""
+        }
+
         return RepoPinImgData(
             repo_name=(
                 f"{repo_owner}/"
                 if user_repo_owner.lower() != repo_owner.lower()
                 else ""
             )
-            + repo_data.get("name", ""),
-            stargazer_count=repo_data.get("stargazerCount", 0) or 0,
-            fork_count=repo_data.get("forkCount", 0) or 0,
-            issue_open_count=(repo_data.get("issues", {}) or {}).get("totalCount", 0)
+            + repo_data.get(enums.RepoPinsResDictKeys.NAME.value, ""),
+            stargazer_count=repo_data.get(enums.RepoPinsResDictKeys.STARS.value, 0)
             or 0,
-            issue_help_count=(repo_data.get("issuesHelp", {}) or {}).get(
-                "totalCount", 0
-            )
+            fork_count=repo_data.get(enums.RepoPinsResDictKeys.FORK_COUNT.value, 0)
             or 0,
-            pull_request_count=(repo_data.get("pullRequests", {}) or {}).get(
-                "totalCount", 0
-            )
+            issue_open_count=(
+                repo_data.get(enums.RepoPinsResDictKeys.ISSUES.value, {}) or {}
+            ).get(enums.RepoPinsResDictKeys.TTL_COUNT.value, 0)
             or 0,
-            contributor_count=len(
-                set(
-                    [
-                        data.get("login").lower()
-                        for data in (repo_data.get("contribution_data", []) or [])
-                        if (data.get("login", "") or "") != ""
-                    ]
+            issue_help_count=(
+                repo_data.get(enums.RepoPinsResDictKeys.ISSUES_HELP.value, {}) or {}
+            ).get(enums.RepoPinsResDictKeys.TTL_COUNT.value, 0)
+            or 0,
+            pull_request_count=(
+                repo_data.get(enums.RepoPinsResDictKeys.PULL_REQUESTS.value, {}) or {}
+            ).get(enums.RepoPinsResDictKeys.TTL_COUNT.value, 0)
+            or 0,
+            contributor_count=len(list(contributions.keys())),
+            contribution_perc=(
+                (
+                    contributions.get(login, 0)
+                    / sum([v for _, v in contributions.items()])
+                )
+                * 100
+                if contributions.get(login, 0)
+                else 0
+            ),
+            description=repo_data.get(enums.RepoPinsResDictKeys.DESCRIPTION.value, "")
+            or "",
+            url=(
+                repo_data.get(enums.RepoPinsResDictKeys.URL.value, "") or ""
+                if not (
+                    repo_data.get(enums.RepoPinsResDictKeys.IS_PRIVATE.value, False)
+                    or False
+                )
+                else cls.repo_pages_url(
+                    url=repo_data.get(enums.RepoPinsResDictKeys.URL.value, "") or ""
                 )
             ),
-            description=repo_data.get("description", "") or "",
-            url=(
-                repo_data.get("url", "") or ""
-                if not (repo_data.get("isPrivate", False) or False)
-                else cls.repo_pages_url(url=repo_data.get("url", "") or "")
-            ),
-            primary_language_name=primary_language_dict.get("name", "") or "",
-            primary_language_color=primary_language_dict.get("color", "") or "",
-            is_fork=repo_data.get("isFork", False) or "",
+            primary_language_name=primary_language_dict.get(
+                enums.RepoPinsResDictKeys.NAME.value, ""
+            )
+            or "",
+            primary_language_color=primary_language_dict.get(
+                enums.RepoPinsResDictKeys.COLOR.value, ""
+            )
+            or "",
+            is_fork=repo_data.get(enums.RepoPinsResDictKeys.IS_FORK.value, False) or "",
             parent=repo_parent,
-            is_template=repo_data.get("isTemplate", False) or False,
-            is_archived=repo_data.get("isArchived", False) or False,
-            is_private=repo_data.get("isPrivate", False) or False,
+            is_template=repo_data.get(
+                enums.RepoPinsResDictKeys.IS_TEMPLATE.value, False
+            )
+            or False,
+            is_archived=repo_data.get(enums.RepoPinsResDictKeys.IS_ARCHIVE.value, False)
+            or False,
+            is_private=repo_data.get(enums.RepoPinsResDictKeys.IS_PRIVATE.value, False)
+            or False,
             theme=(
                 theme_name
                 if theme_name
@@ -144,6 +184,8 @@ class RepoPinImgData:
             f"{f"\nissues (open, help wanted): {self.issue_help_count}" if self.issue_help_count else ""}"
             f"{f"\npull requests (open): {self.pull_request_count}" if self.pull_request_count else ""}"
             f"{f"\ncontributors (default branch commits): {self.contributor_count}" if self.contributor_count else ""}"
+            f"{f"\ncontributions (%): {str(round(self.contribution_perc, 2)).rstrip("0").rstrip(".")}" 
+            if self.contribution_perc else ""}"
             f"\ntheme: {self.theme.value if self.theme else "None"}"
             f"\nbackground image: {f"\n{str(self.bg_img)}" if self.bg_img else "None\n"}"
         )
