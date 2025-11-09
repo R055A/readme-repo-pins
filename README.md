@@ -96,7 +96,7 @@ where:
 ### Contribution Stats
 
 The optional `IS_CONTRIBUTION_STATS` configuration controls whether a (user) contribution percentage is appended to 
-the repository collaborator statistics in the pin footer, enclosed in parentheses, such as: ![ICON](https://raw.githubusercontent.com/primer/octicons/refs/heads/main/icons/people-16.svg) 22 (99.9%).
+the repository contributor count in the pin footer, enclosed in parentheses, such as: ![ICON](https://raw.githubusercontent.com/primer/octicons/refs/heads/main/icons/people-16.svg) 22 (99.9%).
 
 This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
 
