@@ -93,6 +93,21 @@ where:
 * `owner/repo` matches the owner/repository names in the URL of a given repository - required `<>`
 * `<owner/repo>,...,<owner/repo>` is a list of any number of `owner/repo` separated by commas `,`
 
+### Contribution Stats
+
+The optional `IS_CONTRIBUTION_STATS` configuration controls whether a (user) contribution percentage is appended to 
+the repository collaborator statistics in the pin footer, enclosed in parentheses, such as: ![ICON](https://raw.githubusercontent.com/primer/octicons/refs/heads/main/icons/people-16.svg) 22 (99.9%).
+
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+
+* key: `IS_CONTRIBUTION_STATS`
+* value: `[is_stats]`
+
+where:
+* `is_stats` is either `true` (any value) or `false` (empty) - optional `[]`
+
+> The default `IS_CONTRIBUTION_STATS` is `false`
+
 ### API Token
 
 The optional `GH_API_TOKEN` configuration is for elevating GitHub GraphQL API privileges with a [personal access token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
@@ -157,7 +172,7 @@ This can be set by creating a [GitHub Action](https://docs.github.com/en/actions
 * value: `[is_exclude]`
 
 where:
-* `is_exclude` is either `true` or `false` (or empty to represent false) - optional `[]`
+* `is_exclude` is either `true` (any value) or `false` (empty) - optional `[]`
 
 > The default `IS_EXCLUDE_REPOS_OWNED` is `false`
 
@@ -176,7 +191,7 @@ This can be set by creating a [GitHub Action](https://docs.github.com/en/actions
 * value: `[is_exclude]`
 
 where:
-* `is_exclude` is either `true` or `false` (or empty to represent false) - optional `[]`
+* `is_exclude` is either `true` (any value) or `false` (empty) - optional `[]`
 
 > The default `IS_EXCLUDE_REPOS_CONTRIBUTED` is `false`
 

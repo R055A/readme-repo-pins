@@ -154,13 +154,13 @@ def parse_args() -> (
     )
     parser.add_argument(
         "--not-owned",
-        type=bool,
+        action="store_true",
         default=True if IS_EXCLUDE_REPOS_OWNED else False,
         help="If owned repositories are excluded from complementing pins.",
     )
     parser.add_argument(
         "--not-contributed",
-        type=bool,
+        action="store_true",
         default=True if IS_EXCLUDE_REPOS_CONTRIBUTED else False,
         help="If (not owned) repositories contributed to are excluded from complementing pins.",
     )
@@ -172,8 +172,8 @@ def parse_args() -> (
     )
     parser.add_argument(
         "--stats",
-        type=bool,
-        default=IS_CONTRIBUTION_STATS if IS_CONTRIBUTION_STATS else False,
+        action="store_true",
+        default=True if IS_CONTRIBUTION_STATS else False,
         help="If repository contribution stats (commit add/del changes) are/not included. Default: False.",
     )
     args = parser.parse_args()

@@ -15,7 +15,6 @@ class RepoPinStats:
 
     def __init__(self, gh_token: str = None) -> None:
         self.__gh_token: str = gh_token
-        self.__completed_git_commit_data_process: CompletedProcess[str] | None = None
 
     def __get_completed_process(self, args: list[str]) -> CompletedProcess[str]:
         env = environ.copy()
@@ -62,8 +61,7 @@ class RepoPinStats:
                 args=["git", "-C", tmp_dir, "ls-remote", "--symref", "origin", "HEAD"]
             ).stdout.splitlines():
                 if line.startswith("ref: ") and "\tHEAD" in line:
-                    branch = line.split()[1].split("/")[-1]
-                    return f"origin/{branch}"
+                    return f"origin/{line.split()[1].split("/")[-1]}"
         except CalledProcessError:
             pass
 
@@ -190,21 +188,11 @@ class RepoPinStats:
     def fetch_contribution_stats(self, repo_list: list[dict]) -> list[dict]:
         tasks: list[tuple[str, dict]] = []
         for repo in repo_list:
-            if (
-                not len(
-                    repo.get(enums.RepoPinsResDictKeys.URL.value, "").strip().split("/")
-                )
-                > 1
-                or not repo.get(enums.RepoPinsResDictKeys.NAME.value, "").strip()
-            ):
+            url_tokens: list[str] = repo.get(enums.RepoPinsResDictKeys.URL.value, "").strip().split("/")
+            repo_name: str = repo.get(enums.RepoPinsResDictKeys.NAME.value, "").strip()
+            if len(url_tokens) < 2 or not repo_name:
                 continue
-            tasks.append(
-                (
-                    f"{repo.get(enums.RepoPinsResDictKeys.URL.value, "").strip().split("/")[-2].strip()}/"
-                    f"{repo.get(enums.RepoPinsResDictKeys.NAME.value, "").strip()}",
-                    repo,
-                )
-            )
+            tasks.append((f"{url_tokens[-2].strip()}/{repo_name}", repo))
         with ThreadPoolExecutor(
             max_workers=min(self.__MAX_WORKERS, max(1, len(repo_list)))
         ) as thread_pool:
