@@ -6,8 +6,6 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from os import environ
 
-from gh_profile_repo_pins.utils import get_logger
-
 
 class RepoPinStats:
 
@@ -17,8 +15,6 @@ class RepoPinStats:
 
     def __init__(self, gh_token: str = None) -> None:
         self.__gh_token: str = gh_token
-        self.__url: str | None = None
-        self.__tmp_dir: str | None = None
         self.__completed_git_commit_data_process: CompletedProcess[str] | None = None
 
     def __get_completed_process(self, args: list[str]) -> CompletedProcess[str]:
@@ -31,27 +27,28 @@ class RepoPinStats:
             stdout=PIPE,
             stderr=PIPE,
             text=True,
+            env=env,
         )
 
-    def __fetch_git_commit_data(self) -> None:
+    def __fetch_git_commit_data(self, url: str, tmp_dir: str) -> CompletedProcess[str]:
         self.__get_completed_process(
             args=[
                 "git",
                 "clone",
                 "--filter=blob:none",
                 "--no-checkout",
-                self.__url,
-                self.__tmp_dir,
+                url,
+                tmp_dir,
             ]
         )
         self.__get_completed_process(
-            args=["git", "-C", self.__tmp_dir, "checkout", "--detach", "origin/HEAD"]
+            args=["git", "-C", tmp_dir, "checkout", "--detach", "origin/HEAD"]
         )
-        self.__completed_git_commit_data_process = self.__get_completed_process(
+        return self.__get_completed_process(
             args=[
                 "git",
                 "-C",
-                self.__tmp_dir,
+                tmp_dir,
                 "log",
                 "--use-mailmap",
                 "--no-merges",
@@ -63,21 +60,17 @@ class RepoPinStats:
     def __fetch_repo_stats(
         self, owner_repo: str
     ) -> list[dict[str, str | dict[str, int]]]:
-        self.__url: str = (
+        url: str = (
             f"https://{(self.__gh_token + "@") if self.__gh_token else ""}github.com/{owner_repo}.git"
         )
-        log = get_logger()
-        log.debug(msg=self.__url)
-        self.__tmp_dir: str = mkdtemp(prefix=self.__TMP_DIR)
-        log.debug(msg=self.__tmp_dir)
+        tmp_dir: str = mkdtemp(prefix=self.__TMP_DIR)
 
         repo_changes_add, repo_changes_del = {}, {}
         try:
-            self.__fetch_git_commit_data()
             cur_commit_author: str | None = None
             for (
                 commit_line
-            ) in self.__completed_git_commit_data_process.stdout.splitlines():
+            ) in self.__fetch_git_commit_data(url=url, tmp_dir=tmp_dir).stdout.splitlines():
                 if commit_line.endswith(">") and " <" in commit_line:
                     cur_commit_author = commit_line
                     continue
@@ -95,7 +88,7 @@ class RepoPinStats:
         except CalledProcessError as err:
             raise RepoPinStatsError(msg=f"Git process error: {str(err)}")
         finally:
-            rmtree(path=self.__tmp_dir, ignore_errors=True)
+            rmtree(path=tmp_dir, ignore_errors=True)
 
         commit_authors: set[str] = set(repo_changes_add) | set(repo_changes_del)
         return [
