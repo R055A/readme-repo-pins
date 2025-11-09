@@ -1,4 +1,4 @@
-from logging import getLogger, Logger, StreamHandler, Formatter, INFO
+from logging import getLogger, Logger, StreamHandler, Formatter, INFO, DEBUG
 from os import environ, getenv, path, listdir, unlink
 import gh_profile_repo_pins.repo_pins_enum as enums
 from json import load, loads, JSONDecodeError
@@ -273,7 +273,7 @@ def get_logger() -> Logger:
             fmt=Formatter(fmt="%(asctime)s [%(levelname)s] %(message)s")
         )
         logger.addHandler(hdlr=stream_handler)
-        logger.setLevel(level=INFO)
+        logger.setLevel(level=DEBUG)
     return logger
 
 

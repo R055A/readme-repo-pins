@@ -6,6 +6,8 @@ from tempfile import mkdtemp
 from shutil import rmtree
 from os import environ
 
+from gh_profile_repo_pins.utils import get_logger
+
 
 class RepoPinStats:
 
@@ -64,7 +66,10 @@ class RepoPinStats:
         self.__url: str = (
             f"https://{(self.__gh_token + "@") if self.__gh_token else ""}github.com/{owner_repo}.git"
         )
+        log = get_logger()
+        log.debug(msg=self.__url)
         self.__tmp_dir: str = mkdtemp(prefix=self.__TMP_DIR)
+        log.debug(msg=self.__tmp_dir)
 
         repo_changes_add, repo_changes_del = {}, {}
         try:
