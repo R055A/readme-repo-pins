@@ -20,3 +20,9 @@ class RepoPinImageMediaError(RepoPinsException):
 
     def __init__(self, msg: str):
         super().__init__(msg=msg)
+
+
+class RepoPinStatsError(RepoPinsException):
+
+    def __init__(self, msg: str):
+        super().__init__(msg=msg)

@@ -552,13 +552,9 @@ class RepoPinImg:
             footer_y=footer_y,
         )
 
-    def __footer(self, footer_y: float, footer_h: float) -> None:
-        footer_x: float = self.__PADDING
-        if self.__repo_pin_data.primary_language_name:
-            footer_x = self.__footer_primary_language(
-                footer_y=footer_y, footer_h=footer_h
-            )
-
+    def __footer_stargazers(
+        self, footer_x: float, footer_y: float, footer_h: float
+    ) -> float:
         self.__href_link_open(
             url=self.__repo_pin_data.url,
             url_path=(
@@ -573,7 +569,11 @@ class RepoPinImg:
             footer_h=footer_h,
         )
         self.__href_link_close()
+        return footer_x
 
+    def __footer_forks(
+        self, footer_x: float, footer_y: float, footer_h: float
+    ) -> float:
         self.__href_link_open(
             url=self.__repo_pin_data.url,
             url_path=(
@@ -588,7 +588,11 @@ class RepoPinImg:
             footer_h=footer_h,
         )
         self.__href_link_close()
+        return footer_x
 
+    def __footer_issues(
+        self, footer_x: float, footer_y: float, footer_h: float
+    ) -> float:
         self.__href_link_open(
             url=self.__repo_pin_data.url,
             url_path=(
@@ -612,7 +616,11 @@ class RepoPinImg:
             )
             footer_x -= self.__PADDING / 2
         self.__href_link_close()
+        return footer_x
 
+    def __footer_pull_requests(
+        self, footer_x: float, footer_y: float, footer_h: float
+    ) -> float:
         self.__href_link_open(
             url=self.__repo_pin_data.url,
             url_path=(
@@ -627,7 +635,11 @@ class RepoPinImg:
             footer_h=footer_h,
         )
         self.__href_link_close()
+        return footer_x
 
+    def __footer_contributors(
+        self, footer_x: float, footer_y: float, footer_h: float
+    ) -> float:
         self.__href_link_open(
             url=self.__repo_pin_data.url,
             url_path=(
@@ -636,7 +648,7 @@ class RepoPinImg:
                 else None
             ),
         )
-        self.__footer_stats(
+        footer_x = self.__footer_stats(
             stats_icons=[
                 (
                     self.__ICON_USER
@@ -650,7 +662,41 @@ class RepoPinImg:
             footer_h=footer_h,
             is_collab_icon=True,
         )
+        if (
+            self.__repo_pin_data.contributor_count > 1
+            and self.__repo_pin_data.contribution_perc
+        ):
+            footer_x -= self.__PADDING / 2
+            footer_x = self.__footer_txt(
+                txt=f"({round(self.__repo_pin_data.contribution_perc, 2)}%)",
+                txt_x=footer_x,
+                footer_y=footer_y,
+            )
+            footer_x -= self.__PADDING / 2
         self.__href_link_close()
+        return footer_x
+
+    def __footer(self, footer_y: float, footer_h: float) -> None:
+        footer_x: float = self.__PADDING
+        if self.__repo_pin_data.primary_language_name:
+            footer_x = self.__footer_primary_language(
+                footer_y=footer_y, footer_h=footer_h
+            )
+        footer_x = self.__footer_stargazers(
+            footer_x=footer_x, footer_y=footer_y, footer_h=footer_h
+        )
+        footer_x = self.__footer_forks(
+            footer_x=footer_x, footer_y=footer_y, footer_h=footer_h
+        )
+        footer_x = self.__footer_issues(
+            footer_x=footer_x, footer_y=footer_y, footer_h=footer_h
+        )
+        footer_x = self.__footer_pull_requests(
+            footer_x=footer_x, footer_y=footer_y, footer_h=footer_h
+        )
+        self.__footer_contributors(
+            footer_x=footer_x, footer_y=footer_y, footer_h=footer_h
+        )
 
     def __bg_img(self) -> None:
         self.__repo_pin_data.bg_img.load()

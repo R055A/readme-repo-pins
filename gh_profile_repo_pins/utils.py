@@ -73,6 +73,9 @@ REPO_PIN_ORDER: str = environ.get("REPO_PIN_ORDER", "")
 IS_EXCLUDE_REPOS_OWNED: str = environ.get("IS_EXCLUDE_REPOS_OWNED", "")
 IS_EXCLUDE_REPOS_CONTRIBUTED: str = environ.get("IS_EXCLUDE_REPOS_CONTRIBUTED", "")
 
+# optional config, independent to other configs, default True
+IS_CONTRIBUTION_STATS: str = environ.get("IS_CONTRIBUTION_STATS", "")
+
 
 def parse_bg_img(bg_img: str) -> dict | str | None:
     if bg_img:
@@ -93,7 +96,7 @@ def parse_bg_img(bg_img: str) -> dict | str | None:
 
 
 def parse_args() -> (
-    tuple[str, str, str, str | dict, dict | str, int, str, bool, bool, str]
+    tuple[str, str, str, str | dict, dict | str, int, str, bool, bool, str, bool]
 ):
     parser = ArgumentParser(
         description="GitHub API-fetch pinned/popular/contributed/select/etc repositories for a given username"
@@ -168,6 +171,12 @@ def parse_args() -> (
         default=REPO_OWNER if REPO_OWNER else (USERNAME if USERNAME else None),
         help="The owner/org of repo code is executed from. To separate from authorisation (username) when required.",
     )
+    parser.add_argument(
+        "--stats",
+        type=bool,
+        default=IS_CONTRIBUTION_STATS if IS_CONTRIBUTION_STATS else True,
+        help="If repository contribution stats (commit add/del changes) are/not included. Default: True.",
+    )
     args = parser.parse_args()
 
     exclusive_repo_name_pattern = compile(r"^\s*(?:,?\s*[\w.-]+/[\w.-]+\s*)*,?\s*$")
@@ -224,6 +233,7 @@ def parse_args() -> (
         args.not_owned,
         args.not_contributed,
         args.owner,
+        args.stats,
     )
 
 

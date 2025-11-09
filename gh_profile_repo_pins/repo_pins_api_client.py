@@ -135,11 +135,12 @@ class GitHubGraphQlClient:
     __DEFAULT_TIME_OUT: int = 10
     __DEFAULT_FETCH_LIMIT: int = 100
 
+    __MAX_WORKERS: int = 8
+
     def __init__(
         self, api_token: str, username: str = None, fetch_limit: int = None
     ) -> None:
         self.__local_thread: local = local()
-        self.__max_workers: int = 8
 
         self.__api_headers: dict[str, str] = {
             "Accept": "application/vnd.github+json",
@@ -328,13 +329,18 @@ class GitHubGraphQlClient:
     def __fetch_repos_contribution_data_parallel(self, repos: list[dict]) -> list[dict]:
         raw_contribution_data: dict = {}
         with ThreadPoolExecutor(
-            max_workers=min(self.__max_workers, max(1, len(repos)))
+            max_workers=min(self.__MAX_WORKERS, max(1, len(repos)))
         ) as thread_pool:
             for i, repo in enumerate(repos):
                 raw_contribution_data[
                     thread_pool.submit(
                         self.__fetch_repo_contribution_data,
-                        ((repo.get("owner", {}) or {}).get("login", "") or "").strip(),
+                        (
+                            (repo.get("owner", {}) or {}).get(
+                                enums.RepoPinsStatsContributionData.LOGIN.value, ""
+                            )
+                            or ""
+                        ).strip(),
                         (repo.get("name", "") or "").strip(),
                     )
                 ] = i
@@ -342,7 +348,9 @@ class GitHubGraphQlClient:
             for i_complete in as_completed(fs=raw_contribution_data):
                 i = raw_contribution_data[i_complete]
                 try:
-                    repos[i]["contribution_data"] = i_complete.result()
+                    repos[i][
+                        enums.RepoPinsStatsContributionData.DATA.value
+                    ] = i_complete.result()
                 except (
                     GitHubGraphQlClientError,
                     Timeout,
@@ -350,7 +358,7 @@ class GitHubGraphQlClient:
                     HTTPError,
                     RequestException,
                 ):
-                    repos[i]["contribution_data"] = []
+                    repos[i][enums.RepoPinsStatsContributionData.DATA.value] = []
         return repos
 
     @property
@@ -382,9 +390,7 @@ class GitHubGraphQlClient:
             },
             repo_data_key="pinnedItems",
         )
-        return self.__fetch_repos_contribution_data_parallel(
-            repos=[edge["node"] for edge in pinned_repos.get("edges", [])]
-        )
+        return [edge["node"] for edge in pinned_repos.get("edges", [])]
 
     def fetch_owned_or_contributed_to_repo_data(
         self,
@@ -392,7 +398,7 @@ class GitHubGraphQlClient:
         pinned_repo_urls: list[str] = None,
         is_contributed: bool = False,
     ) -> list[dict[str, str | int | dict | list]]:
-        owned_or_contributed_repos: list[dict] = self.__paginate_fetch_repo_data(
+        return self.__paginate_fetch_repo_data(
             body_json={
                 "query": (
                     self.__GRAPH_QL_REPO_CONTRIBUTED_QUERY_STR
@@ -414,16 +420,13 @@ class GitHubGraphQlClient:
             ),
             pinned_repo_urls=pinned_repo_urls if pinned_repo_urls else [],
         )
-        return self.__fetch_repos_contribution_data_parallel(
-            repos=owned_or_contributed_repos
-        )
 
     def fetch_single_repo_data(
         self,
         repo_owner: str = None,
         repo_name: str = None,
     ) -> dict[str, str | int | dict | list]:
-        single_repo: dict = self.__process_repo_req(
+        return self.__process_repo_req(
             body_json={
                 "query": self.__GRAPH_QL_REPO_NAME_QUERY_STR,
                 "variables": {
@@ -435,7 +438,6 @@ class GitHubGraphQlClient:
             repo_data_key="repository",
             is_user_data=False,
         )
-        single_repo["contribution_data"] = self.__fetch_repo_contribution_data(
-            repo_owner=repo_owner, repo_name=repo_name
-        )
-        return single_repo
+
+    def fetch_contributor_stats(self, repo_list: list[dict]) -> list[dict]:
+        return self.__fetch_repos_contribution_data_parallel(repos=repo_list)

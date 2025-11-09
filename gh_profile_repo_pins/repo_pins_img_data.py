@@ -14,6 +14,7 @@ class RepoPinImgData:
     issue_help_count: int
     pull_request_count: int
     contributor_count: int
+    contribution_perc: float
     description: str
     url: str
     primary_language_name: str
@@ -43,6 +44,7 @@ class RepoPinImgData:
         cls,
         repo_data: dict,
         user_repo_owner: str,
+        username: str,
         theme_name: enums.RepoPinsImgThemeName = enums.RepoPinsImgThemeName.GITHUB_SOFT,
         bg_img: dict | str = None,
     ) -> "RepoPinImgData":
@@ -76,6 +78,17 @@ class RepoPinImgData:
         except ValueError as err:
             raise RepoPinImageMediaError(msg=f"Background image error: {str(err)}")
 
+        contributions: dict[str, int] = {
+            data.get(enums.RepoPinsStatsContributionData.LOGIN.value).strip(): data.get(
+                enums.RepoPinsStatsContributionData.STATS.value, 0
+            )
+            for data in (
+                repo_data.get(enums.RepoPinsStatsContributionData.DATA.value, []) or []
+            )
+            if (data.get(enums.RepoPinsStatsContributionData.LOGIN.value, "") or "")
+            != ""
+        }
+
         return RepoPinImgData(
             repo_name=(
                 f"{repo_owner}/"
@@ -95,14 +108,15 @@ class RepoPinImgData:
                 "totalCount", 0
             )
             or 0,
-            contributor_count=len(
-                set(
-                    [
-                        data.get("login").lower()
-                        for data in (repo_data.get("contribution_data", []) or [])
-                        if (data.get("login", "") or "") != ""
-                    ]
+            contributor_count=len(list(contributions.keys())),
+            contribution_perc=(
+                (
+                    contributions.get(username, 0)
+                    / sum([v for _, v in contributions.items()])
                 )
+                * 100
+                if contributions.get(username, 0)
+                else 0
             ),
             description=repo_data.get("description", "") or "",
             url=(

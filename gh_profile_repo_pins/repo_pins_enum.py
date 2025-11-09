@@ -78,6 +78,12 @@ class RepoPinsImgThemeMode(Enum):
     DARK = "dark"
 
 
+class RepoPinsStatsContributionData(Enum):
+    DATA = "contribution_data"
+    LOGIN = "login"
+    STATS = "stats"
+
+
 def update_enum(enum_cls: type[Enum], enum_dict: dict[str, str]) -> None:
     updated_enum: Enum = Enum(
         enum_cls.__name__,

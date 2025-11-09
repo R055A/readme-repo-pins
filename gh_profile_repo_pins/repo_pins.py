@@ -2,8 +2,10 @@ from gh_profile_repo_pins.repo_pins_exceptions import (
     GitHubGraphQlClientError,
     RepoPinImageThemeError,
     RepoPinImageMediaError,
+    RepoPinStatsError,
 )
 from gh_profile_repo_pins.repo_pins_api_client import GitHubGraphQlClient
+from gh_profile_repo_pins.repo_pins_stats import RepoPinStats
 from gh_profile_repo_pins.utils import set_git_creds, get_logger, Logger
 from gh_profile_repo_pins.repo_pins_generate import GenerateRepoPins
 import gh_profile_repo_pins.repo_pins_enum as enums
@@ -29,6 +31,7 @@ class ReadMeRepoPins:
         is_exclude_repos_owned: bool = False,
         is_exclude_repos_contributed: bool = False,
         repo_owner: str = None,
+        is_contribution_stats: bool = False,
     ) -> None:
         self.__log: Logger = get_logger()
         try:
@@ -94,6 +97,11 @@ class ReadMeRepoPins:
             repo_owner if repo_owner else self.__gh_api_client.username
         )
 
+        self.__is_contribution_stats: bool = is_contribution_stats
+        self.__repo_stats: RepoPinStats = (
+            RepoPinStats(gh_token=api_token) if self.__is_contribution_stats else None
+        )
+
     def __order_repos_by_exclusive_preference(self) -> None:
         self.__repo_pins = [
             repo
@@ -133,6 +141,7 @@ class ReadMeRepoPins:
         gen_repo_pins: GenerateRepoPins = GenerateRepoPins(
             repo_pins_data=self.__repo_pins,
             user_repo_owner=self.__user_repo_owner,
+            username=self.__gh_api_client.username,
             theme=self.__theme,
             bg_img=self.__bg_img,
         )
@@ -187,10 +196,19 @@ class ReadMeRepoPins:
                 self.__repo_pins.extend(contributed_repos)
             self.__order_repos_by_preference()
 
+            if self.__is_contribution_stats and self.__repo_stats:
+                self.__repo_pins = self.__repo_stats.fetch_contribution_stats(
+                    repo_list=self.__repo_pins
+                )
+            else:
+                self.__repo_pins = self.__gh_api_client.fetch_contributor_stats(
+                    repo_list=self.__repo_pins
+                )
+
             self.__log.info(
                 msg=f"Total API fetch cost: {self.__gh_api_client.fetch_cost}"
             )
-        except GitHubGraphQlClientError as err:
+        except (GitHubGraphQlClientError, RepoPinStatsError) as err:
             self.__log.error(msg=err.msg)
             exit(1)
 

@@ -21,6 +21,7 @@ class GenerateRepoPins:
         self,
         repo_pins_data: list[dict[str, str | int | bool | dict[str, str]]],
         user_repo_owner: str,
+        username: str,
         theme: str | dict,
         bg_img: dict | str = None,
     ) -> None:
@@ -31,6 +32,7 @@ class GenerateRepoPins:
                 RepoPinImgData.format_repo_pin_data(
                     repo_data=i,
                     user_repo_owner=user_repo_owner,
+                    username=username,
                     theme_name=self.__get_repo_theme_data(theme=theme, repo_data_i=i),
                     bg_img=self.__get_repo_bg_img_data(bg_img=bg_img, repo_data_i=i),
                 )
