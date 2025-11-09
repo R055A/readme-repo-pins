@@ -188,7 +188,9 @@ class RepoPinStats:
     def fetch_contribution_stats(self, repo_list: list[dict]) -> list[dict]:
         tasks: list[tuple[str, dict]] = []
         for repo in repo_list:
-            url_tokens: list[str] = repo.get(enums.RepoPinsResDictKeys.URL.value, "").strip().split("/")
+            url_tokens: list[str] = (
+                repo.get(enums.RepoPinsResDictKeys.URL.value, "").strip().split("/")
+            )
             repo_name: str = repo.get(enums.RepoPinsResDictKeys.NAME.value, "").strip()
             if len(url_tokens) < 2 or not repo_name:
                 continue
