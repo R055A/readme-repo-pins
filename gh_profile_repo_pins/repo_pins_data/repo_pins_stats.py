@@ -20,17 +20,73 @@ class RepoPinStats:
     def __get_completed_process(self, args: list[str]) -> CompletedProcess[str]:
         env = environ.copy()
         env.setdefault("GIT_TERMINAL_PROMPT", "0")
+        env.setdefault("GIT_OPTIONAL_LOCKS", "0")
         env.setdefault("GIT_ASKPASS", "true")
+        env.setdefault("GIT_PAGER", "cat")
         return run(
             args=args,
             check=self.__IS_CALLED_PROCESS_ERR,
             stdout=PIPE,
             stderr=PIPE,
             text=True,
+            encoding="utf-8",
+            errors="ignore",
             env=env,
         )
 
-    def __fetch_git_commit_data(self, url: str, tmp_dir: str) -> CompletedProcess[str]:
+    def __get_ref(self, tmp_dir: str) -> str | None:
+        for _ in range(2):
+            try:
+                ref: str = self.__get_completed_process(
+                    args=[
+                        "git",
+                        "-C",
+                        tmp_dir,
+                        "symbolic-ref",
+                        "--quiet",
+                        "--short",
+                        "refs/remotes/origin/HEAD",
+                    ]
+                ).stdout
+                if ref:
+                    return ref.strip()
+
+                self.__get_completed_process(
+                    args=["git", "-C", tmp_dir, "remote", "set-head", "origin", "-a"]
+                )
+            except CalledProcessError:
+                continue
+
+        try:
+            for line in self.__get_completed_process(
+                args=["git", "-C", tmp_dir, "ls-remote", "--symref", "origin", "HEAD"]
+            ).stdout.splitlines():
+                if line.startswith("ref: ") and "\tHEAD" in line:
+                    branch = line.split()[1].split("/")[-1]
+                    return f"origin/{branch}"
+        except CalledProcessError:
+            pass
+
+        for default_branch in ["main", "master"]:
+            try:
+                self.__get_completed_process(
+                    args=[
+                        "git",
+                        "-C",
+                        tmp_dir,
+                        "show-ref",
+                        "--verify",
+                        f"refs/remotes/origin/{default_branch}",
+                    ]
+                )
+                return f"origin/{default_branch}"
+            except CalledProcessError:
+                continue
+        return None
+
+    def __fetch_git_commit_data(
+        self, url: str, tmp_dir: str
+    ) -> CompletedProcess[str] | None:
         self.__get_completed_process(
             args=[
                 "git",
@@ -42,14 +98,36 @@ class RepoPinStats:
             ]
         )
         self.__get_completed_process(
-            args=["git", "-C", tmp_dir, "checkout", "--detach", "origin/HEAD"]
+            args=[
+                "git",
+                "-C",
+                tmp_dir,
+                "fetch",
+                "origin",
+                "+refs/heads/*:refs/remotes/origin/*",
+                "--filter=blob:none",
+            ]
         )
+
+        ref: str = self.__get_ref(tmp_dir=tmp_dir)
+        if not ref:
+            return None
+        try:
+            self.__get_completed_process(
+                args=["git", "-C", tmp_dir, "rev-list", "-n", "1", ref]
+            )
+        except CalledProcessError:
+            return None
+
         return self.__get_completed_process(
             args=[
                 "git",
                 "-C",
                 tmp_dir,
+                "-c",
+                "i18n.logOutputEncoding=UTF-8",
                 "log",
+                ref,
                 "--use-mailmap",
                 "--no-merges",
                 "--numstat",
@@ -67,10 +145,13 @@ class RepoPinStats:
 
         repo_changes_add, repo_changes_del = {}, {}
         try:
+            commit_data: CompletedProcess[str] | None = self.__fetch_git_commit_data(
+                url=url, tmp_dir=tmp_dir
+            )
+            if not commit_data or not commit_data.stdout:
+                return []
             cur_commit_author: str | None = None
-            for (
-                commit_line
-            ) in self.__fetch_git_commit_data(url=url, tmp_dir=tmp_dir).stdout.splitlines():
+            for commit_line in commit_data.stdout.splitlines():
                 if commit_line.endswith(">") and " <" in commit_line:
                     cur_commit_author = commit_line
                     continue
@@ -86,15 +167,19 @@ class RepoPinStats:
                             cur_commit_author, 0
                         ) + int(d)
         except CalledProcessError as err:
-            raise RepoPinStatsError(msg=f"Git process error: {str(err)}")
+            raise RepoPinStatsError(
+                msg=f"Git process error: {err.stderr.strip() or err.stdout.strip() or err}"
+            )
         finally:
             rmtree(path=tmp_dir, ignore_errors=True)
 
         commit_authors: set[str] = set(repo_changes_add) | set(repo_changes_del)
         return [
             {
-                enums.RepoPinsStatsContributionData.LOGIN.value: commit_author,
-                enums.RepoPinsStatsContributionData.STATS.value: (
+                enums.RepoPinsResDictKeys.LOGIN.value: commit_author.split(" <")[0]
+                .strip()
+                .lower(),
+                enums.RepoPinsResDictKeys.STATS.value: (
                     repo_changes_add.get(commit_author, 0)
                     + repo_changes_del.get(commit_author, 0)
                 ),
@@ -106,13 +191,17 @@ class RepoPinStats:
         tasks: list[tuple[str, dict]] = []
         for repo in repo_list:
             if (
-                not len(repo.get("url", "").strip().split("/")) > 1
-                or not repo.get("name", "").strip()
+                not len(
+                    repo.get(enums.RepoPinsResDictKeys.URL.value, "").strip().split("/")
+                )
+                > 1
+                or not repo.get(enums.RepoPinsResDictKeys.NAME.value, "").strip()
             ):
                 continue
             tasks.append(
                 (
-                    f"{repo.get("url", "").strip().split("/")[-2].strip()}/{repo.get("name", "").strip()}",
+                    f"{repo.get(enums.RepoPinsResDictKeys.URL.value, "").strip().split("/")[-2].strip()}/"
+                    f"{repo.get(enums.RepoPinsResDictKeys.NAME.value, "").strip()}",
                     repo,
                 )
             )
@@ -125,6 +214,6 @@ class RepoPinStats:
             }
             for k_complete in as_completed(contribution_data):
                 contribution_data[k_complete][
-                    enums.RepoPinsStatsContributionData.DATA.value
+                    enums.RepoPinsResDictKeys.CONTRIBUTION.value
                 ] = k_complete.result()
         return repo_list

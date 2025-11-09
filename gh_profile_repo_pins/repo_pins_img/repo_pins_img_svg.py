@@ -1,6 +1,9 @@
-from gh_profile_repo_pins.repo_pins_img_theme import RepoPinImgTheme, ThemeSVG
-from gh_profile_repo_pins.repo_pins_img_nlp import RepoPinImgTranslator
-from gh_profile_repo_pins.repo_pins_img_data import RepoPinImgData
+from gh_profile_repo_pins.repo_pins_img.repo_pins_img_theme import (
+    RepoPinImgTheme,
+    ThemeSVG,
+)
+from gh_profile_repo_pins.repo_pins_img.repo_pins_img_nlp import RepoPinImgTranslator
+from gh_profile_repo_pins.repo_pins_img.repo_pins_img_data import RepoPinImgData
 import gh_profile_repo_pins.repo_pins_enum as enums
 
 
@@ -60,7 +63,7 @@ class RepoPinImg:
 
     __URL_PATH_STARS: str = "stargazers"
     __URL_PATH_FORKS: str = "forks"
-    __URL_PATH_ISSUES: str = "issues"
+    __URL_PATH_ISSUES: str = enums.RepoPinsResDictKeys.ISSUES.value.lower()
     __URL_PATH_PULLS: str = "pulls"
     __URL_PATH_CONTRIBUTORS: str = "graphs/contributors"
 
@@ -668,7 +671,7 @@ class RepoPinImg:
         ):
             footer_x -= self.__PADDING / 2
             footer_x = self.__footer_txt(
-                txt=f"({round(self.__repo_pin_data.contribution_perc, 2)}%)",
+                txt=f"({str(round(self.__repo_pin_data.contribution_perc, 1)).rstrip("0").rstrip(".")}%)",
                 txt_x=footer_x,
                 footer_y=footer_y,
             )
@@ -807,70 +810,105 @@ def tst_svg_render(
 
     tst_input: list[dict[str, str | int | bool | dict[str, str]]] = [
         {
-            "name": "readme-repo-pins",
-            "stargazerCount": 110_000,
-            "forkCount": 9_900_000_000,
-            "issues": {"totalCount": 10},
-            "issuesHelp": {"totalCount": 1},
-            "pullRequests": {"totalCount": 22},
-            "owner": {"login": "profile-icons"},
-            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
+            enums.RepoPinsResDictKeys.NAME.value: "readme-repo-pins",
+            enums.RepoPinsResDictKeys.STARS.value: 110_000,
+            enums.RepoPinsResDictKeys.FORK_COUNT.value: 9_900_000_000,
+            enums.RepoPinsResDictKeys.ISSUES.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 10
+            },
+            enums.RepoPinsResDictKeys.ISSUES_HELP.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 1
+            },
+            enums.RepoPinsResDictKeys.PULL_REQUESTS.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 22
+            },
+            enums.RepoPinsResDictKeys.OWNER.value: {
+                enums.RepoPinsResDictKeys.LOGIN.value: "profile-icons"
+            },
+            enums.RepoPinsResDictKeys.DESCRIPTION.value: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
             "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
             "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris "
             "nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in "
             "reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla "
             "pariatur. Excepteur sint occaecat cupidatat non proident, sunt in "
             "culpa qui officia deserunt mollit anim id est laborum.",
-            "url": "https://github.com/profile-icons/readme-repo-pins",
-            "primaryLanguage": {"name": "MATLAB", "color": "#e16737"},
-            "isFork": True,
-            "parent": {"nameWithOwner": "R055A/readme-repo-pins"},
-            "isTemplate": True,
-            "isArchived": True,
-            "isPrivate": False,
-            "contribution_data": [
-                {"login": test_username},
-                {"login": "ANON"},
+            enums.RepoPinsResDictKeys.URL.value: "https://github.com/profile-icons/readme-repo-pins",
+            enums.RepoPinsResDictKeys.LANGUAGE.value: {
+                enums.RepoPinsResDictKeys.NAME.value: "MATLAB",
+                enums.RepoPinsResDictKeys.COLOR.value: "#e16737",
+            },
+            enums.RepoPinsResDictKeys.IS_FORK.value: True,
+            enums.RepoPinsResDictKeys.PARENT.value: {
+                enums.RepoPinsResDictKeys.OWNER_REPO.value: "R055A/readme-repo-pins"
+            },
+            enums.RepoPinsResDictKeys.IS_TEMPLATE.value: True,
+            enums.RepoPinsResDictKeys.IS_ARCHIVE.value: True,
+            enums.RepoPinsResDictKeys.IS_PRIVATE.value: False,
+            enums.RepoPinsResDictKeys.CONTRIBUTION.value: [
+                {enums.RepoPinsResDictKeys.LOGIN.value: test_username, "stats": 737},
+                {enums.RepoPinsResDictKeys.LOGIN.value: "ANON1", "stats": 100},
+                {enums.RepoPinsResDictKeys.LOGIN.value: "ANON2", "stats": 63},
+                {enums.RepoPinsResDictKeys.LOGIN.value: "ANON3", "stats": 100},
             ],
         },
         {
-            "name": test_username,
-            "stargazerCount": 0,
-            "forkCount": 1,
-            "issues": {"totalCount": 1},
-            "issuesHelp": {"totalCount": 0},
-            "pullRequests": {"totalCount": 1},
-            "owner": {"login": test_username},
-            "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
+            enums.RepoPinsResDictKeys.NAME.value: test_username,
+            enums.RepoPinsResDictKeys.STARS.value: 0,
+            enums.RepoPinsResDictKeys.FORK_COUNT.value: 1,
+            enums.RepoPinsResDictKeys.ISSUES.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 1
+            },
+            enums.RepoPinsResDictKeys.ISSUES_HELP.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 0
+            },
+            enums.RepoPinsResDictKeys.PULL_REQUESTS.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 1
+            },
+            enums.RepoPinsResDictKeys.OWNER.value: {
+                enums.RepoPinsResDictKeys.LOGIN.value: test_username
+            },
+            enums.RepoPinsResDictKeys.DESCRIPTION.value: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
             "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            "url": f"https://github.com/{test_username}/{test_username}",
-            "primaryLanguage": {"name": "Python", "color": "#3572A5"},
-            "isFork": False,
-            "parent": {},
-            "isTemplate": True,
-            "isArchived": False,
-            "isPrivate": True,
-            "contribution_data": [
-                {"login": test_username},
+            enums.RepoPinsResDictKeys.URL.value: f"https://github.com/{test_username}/{test_username}",
+            enums.RepoPinsResDictKeys.LANGUAGE.value: {
+                enums.RepoPinsResDictKeys.NAME.value: "Python",
+                enums.RepoPinsResDictKeys.COLOR.value: "#3572A5",
+            },
+            enums.RepoPinsResDictKeys.IS_FORK.value: False,
+            enums.RepoPinsResDictKeys.PARENT.value: {},
+            enums.RepoPinsResDictKeys.IS_TEMPLATE.value: True,
+            enums.RepoPinsResDictKeys.IS_ARCHIVE.value: False,
+            enums.RepoPinsResDictKeys.IS_PRIVATE.value: True,
+            enums.RepoPinsResDictKeys.CONTRIBUTION.value: [
+                {enums.RepoPinsResDictKeys.LOGIN.value: test_username},
+                {enums.RepoPinsResDictKeys.LOGIN.value: "ANON"},
             ],
         },
         {
-            "name": "readme-repo-pins-readme-repo-pins",
-            "stargazerCount": 0,
-            "forkCount": 0,
-            "issues": {"totalCount": 0},
-            "issuesHelp": {"totalCount": 0},
-            "pullRequests": {"totalCount": 0},
-            "owner": {"login": "profile-icons"},
-            "description": "",
-            "url": "https://github.com/profile-icons/readme-repo-pins",
-            "primaryLanguage": {},
-            "isFork": False,
-            "parent": {},
-            "isTemplate": False,
-            "isArchived": False,
-            "isPrivate": False,
-            "contribution_data": [],
+            enums.RepoPinsResDictKeys.NAME.value: "readme-repo-pins-readme-repo-pins",
+            enums.RepoPinsResDictKeys.STARS.value: 0,
+            enums.RepoPinsResDictKeys.FORK_COUNT.value: 0,
+            enums.RepoPinsResDictKeys.ISSUES.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 0
+            },
+            enums.RepoPinsResDictKeys.ISSUES_HELP.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 0
+            },
+            enums.RepoPinsResDictKeys.PULL_REQUESTS.value: {
+                enums.RepoPinsResDictKeys.TTL_COUNT.value: 0
+            },
+            enums.RepoPinsResDictKeys.OWNER.value: {
+                enums.RepoPinsResDictKeys.LOGIN.value: "profile-icons"
+            },
+            enums.RepoPinsResDictKeys.DESCRIPTION.value: "",
+            enums.RepoPinsResDictKeys.URL.value: "https://github.com/profile-icons/readme-repo-pins",
+            enums.RepoPinsResDictKeys.LANGUAGE.value: {},
+            enums.RepoPinsResDictKeys.IS_FORK.value: False,
+            enums.RepoPinsResDictKeys.PARENT.value: {},
+            enums.RepoPinsResDictKeys.IS_TEMPLATE.value: False,
+            enums.RepoPinsResDictKeys.IS_ARCHIVE.value: False,
+            enums.RepoPinsResDictKeys.IS_PRIVATE.value: False,
+            enums.RepoPinsResDictKeys.CONTRIBUTION.value: [],
         },
     ]
 
@@ -879,6 +917,7 @@ def tst_svg_render(
             repo_pin: RepoPinImgData = RepoPinImgData.format_repo_pin_data(
                 repo_data=tst_repo_data,
                 user_repo_owner=test_username,
+                login=test_username,
                 theme_name=enums.RepoPinsImgThemeName(test_theme_name),
                 bg_img=test_bg_img,
             )

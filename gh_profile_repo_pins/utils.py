@@ -1,4 +1,4 @@
-from logging import getLogger, Logger, StreamHandler, Formatter, INFO, DEBUG
+from logging import getLogger, Logger, StreamHandler, Formatter, DEBUG
 from os import environ, getenv, path, listdir, unlink
 import gh_profile_repo_pins.repo_pins_enum as enums
 from json import load, loads, JSONDecodeError
@@ -10,7 +10,6 @@ from sys import stdout
 from re import compile
 
 SRC_REPO_NAME: str = "readme-repo-pins-src"
-SRC_MODULE: str = "gh_profile_repo_pins"
 FILES_DIR: str = "files"
 IMGS_DIR: str = "imgs"
 
@@ -73,7 +72,7 @@ REPO_PIN_ORDER: str = environ.get("REPO_PIN_ORDER", "")
 IS_EXCLUDE_REPOS_OWNED: str = environ.get("IS_EXCLUDE_REPOS_OWNED", "")
 IS_EXCLUDE_REPOS_CONTRIBUTED: str = environ.get("IS_EXCLUDE_REPOS_CONTRIBUTED", "")
 
-# optional config, independent to other configs, default True
+# optional config, independent to other configs, default False
 IS_CONTRIBUTION_STATS: str = environ.get("IS_CONTRIBUTION_STATS", "")
 
 
@@ -174,8 +173,8 @@ def parse_args() -> (
     parser.add_argument(
         "--stats",
         type=bool,
-        default=IS_CONTRIBUTION_STATS if IS_CONTRIBUTION_STATS else True,
-        help="If repository contribution stats (commit add/del changes) are/not included. Default: True.",
+        default=IS_CONTRIBUTION_STATS if IS_CONTRIBUTION_STATS else False,
+        help="If repository contribution stats (commit add/del changes) are/not included. Default: False.",
     )
     args = parser.parse_args()
 
@@ -288,14 +287,7 @@ def get_path(path_str: str = FILES_DIR) -> str:
     if not Path(path_str).exists():
         if Path(f"{SRC_REPO_NAME}/{path_str}").exists():
             return f"{SRC_REPO_NAME}/{path_str}"  # repo is cloned in workflow
-        elif not Path(f"../{path_str}").exists():
-            if str(Path.cwd()).endswith(SRC_MODULE):
-                path_str = f"../{path_str}"  # local/IDE testing output
-            Path(
-                path_str
-            ).mkdir()  # create dir if not exist (such as initial imgs/ dir)
-        else:
-            return f"../{path_str}"  # local/IDE testing input
+        Path(path_str).mkdir()  # create dir if not exist (such as initial imgs/ dir)
     return path_str
 
 

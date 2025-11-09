@@ -24,7 +24,7 @@ class GitHubCredentialData:
     account_creation: str
 
 
-class GitHubGraphQlClient:
+class GitHubApiClient:
 
     __GRAPH_QL_URL: str = "https://api.github.com/graphql"
     __GRAPH_QL_REPO_QUERY_NODE_DATA: str = """
@@ -166,14 +166,17 @@ class GitHubGraphQlClient:
         self, res: Response, exception: type[BaseException] = GitHubGraphQlClientError
     ) -> None:
         raise exception(
-            f"{(res.json().get("errors") or {}).get("message")
-            if res.json().get("error")
+            f"{(res.json().get(enums.RepoPinsResDictKeys.ERROR.value) or {})
+            .get(enums.RepoPinsResDictKeys.MESSAGE.value)
+            if res.json().get(enums.RepoPinsResDictKeys.ERROR.value)
             else (
-                res.json()["errors"][0].get("message")
-                if isinstance(res.json().get("errors"), list) and res.json()["errors"]
+                res.json().get(enums.RepoPinsResDictKeys.ERROR.value,[])[0]
+                .get(enums.RepoPinsResDictKeys.MESSAGE.value)
+                if isinstance(res.json().get(enums.RepoPinsResDictKeys.ERROR.value), list) 
+                and res.json().get(enums.RepoPinsResDictKeys.ERROR.value)
                 else (
-                    res.json().get("message") 
-                    if res.json().get("message") 
+                    res.json().get(enums.RepoPinsResDictKeys.MESSAGE.value) 
+                    if res.json().get(enums.RepoPinsResDictKeys.MESSAGE.value) 
                     else "Bad credentials"
                 )
             )}"
@@ -182,9 +185,12 @@ class GitHubGraphQlClient:
     def __update_fetch_cost(self, res_json: dict = None) -> None:
         with self.__fetch_cost_update_lock:
             self.__fetch_cost_ttl += (
-                ((res_json.get("data", {}) or {}).get("rateLimit", {}) or {}).get(
-                    "cost", 0
-                )
+                (
+                    (res_json.get(enums.RepoPinsResDictKeys.DATA.value, {}) or {}).get(
+                        enums.RepoPinsResDictKeys.RATE_LIMIT.value, {}
+                    )
+                    or {}
+                ).get(enums.RepoPinsResDictKeys.COST.value, 0)
                 or 0
                 if res_json
                 else 1
@@ -201,16 +207,27 @@ class GitHubGraphQlClient:
             if res.status_code == HTTPStatus.OK:
                 res_json: dict[str, str | list[str]] = res.json()
                 if (
-                    res_json.get("errors")
-                    and isinstance(res_json.get("errors")[0], dict)
-                    and res_json.get("errors")[0].get("message")
+                    res_json.get(enums.RepoPinsResDictKeys.ERROR.value)
+                    and isinstance(
+                        res_json.get(enums.RepoPinsResDictKeys.ERROR.value)[0], dict
+                    )
+                    and res_json.get(enums.RepoPinsResDictKeys.ERROR.value)[0].get(
+                        enums.RepoPinsResDictKeys.MESSAGE.value
+                    )
                 ):
-                    raise Exception(res_json.get("errors")[0].get("message"))
+                    raise Exception(
+                        res_json.get(enums.RepoPinsResDictKeys.ERROR.value)[0].get(
+                            enums.RepoPinsResDictKeys.MESSAGE.value
+                        )
+                    )
                 self.__update_fetch_cost(res_json=res_json)
                 return res_json
             elif res.status_code == HTTPStatus.UNAUTHORIZED or not (
-                (res.json().get("data") or {}).get("viewer") or {}
-            ).get("login", None):
+                (res.json().get(enums.RepoPinsResDictKeys.DATA.value) or {}).get(
+                    enums.RepoPinsResDictKeys.VIEWER.value
+                )
+                or {}
+            ).get(enums.RepoPinsResDictKeys.LOGIN.value, None):
                 self.__raise_api_fetch_err(res=res)
             else:
                 self.__raise_api_fetch_err(res=res)
@@ -221,13 +238,28 @@ class GitHubGraphQlClient:
         res: dict[str, str | list[str]] = self.__post_request(
             body_json={
                 "query": self.__GRAPH_QL_USER_DATA_QUERY,
-                "variables": {"login": username},
+                "variables": {enums.RepoPinsResDictKeys.LOGIN.value: username},
             }
         )
         return (
-            ((res.get("data") or {}).get("user") or {}).get("name", ""),
-            ((res.get("data") or {}).get("user") or {}).get("databaseId", 0),
-            ((res.get("data") or {}).get("user") or {}).get("createdAt", ""),
+            (
+                (res.get(enums.RepoPinsResDictKeys.DATA.value) or {}).get(
+                    enums.RepoPinsResDictKeys.USER.value
+                )
+                or {}
+            ).get(enums.RepoPinsResDictKeys.NAME.value, ""),
+            (
+                (res.get(enums.RepoPinsResDictKeys.DATA.value) or {}).get(
+                    enums.RepoPinsResDictKeys.USER.value
+                )
+                or {}
+            ).get(enums.RepoPinsResDictKeys.DB_ID.value, 0),
+            (
+                (res.get(enums.RepoPinsResDictKeys.DATA.value) or {}).get(
+                    enums.RepoPinsResDictKeys.USER.value
+                )
+                or {}
+            ).get(enums.RepoPinsResDictKeys.CREATED_AT.value, ""),
         )
 
     def __verify_user(self, username: str = None) -> tuple[str, str, int, str]:
@@ -235,7 +267,14 @@ class GitHubGraphQlClient:
             body_json={"query": self.__GRAPH_QL_VERIFY_TOKEN_QUERY}
         )
         res_username: str = (
-            ((res.get("data") or {}).get("viewer") or {}).get("login", "").strip()
+            (
+                (res.get(enums.RepoPinsResDictKeys.DATA.value) or {}).get(
+                    enums.RepoPinsResDictKeys.VIEWER.value
+                )
+                or {}
+            )
+            .get(enums.RepoPinsResDictKeys.LOGIN.value, "")
+            .strip()
         )
         if not username:
             username = res_username
@@ -244,10 +283,17 @@ class GitHubGraphQlClient:
     def __process_repo_req(
         self, body_json: dict, repo_data_key: str, is_user_data: bool = True
     ) -> dict:
-        res_data: dict = self.__post_request(body_json=body_json).get("data") or {}
-        return (res_data.get("user") or {} if is_user_data else res_data).get(
-            repo_data_key
-        ) or {}
+        res_data: dict = (
+            self.__post_request(body_json=body_json).get(
+                enums.RepoPinsResDictKeys.DATA.value
+            )
+            or {}
+        )
+        return (
+            res_data.get(enums.RepoPinsResDictKeys.USER.value) or {}
+            if is_user_data
+            else res_data
+        ).get(repo_data_key) or {}
 
     def __paginate_fetch_repo_data(
         self, body_json: dict, repo_data_key: str, pinned_repo_urls: list
@@ -266,7 +312,7 @@ class GitHubGraphQlClient:
             for node in repo_data.get("nodes", []):
                 if not node:
                     continue
-                url: str = node.get("url", "")
+                url: str = node.get(enums.RepoPinsResDictKeys.URL.value, "")
                 if url in repo_urls:
                     continue
                 repo_urls.add(url)
@@ -336,12 +382,15 @@ class GitHubGraphQlClient:
                     thread_pool.submit(
                         self.__fetch_repo_contribution_data,
                         (
-                            (repo.get("owner", {}) or {}).get(
-                                enums.RepoPinsStatsContributionData.LOGIN.value, ""
-                            )
+                            (
+                                repo.get(enums.RepoPinsResDictKeys.OWNER.value, {})
+                                or {}
+                            ).get(enums.RepoPinsResDictKeys.LOGIN.value, "")
                             or ""
                         ).strip(),
-                        (repo.get("name", "") or "").strip(),
+                        (
+                            repo.get(enums.RepoPinsResDictKeys.NAME.value, "") or ""
+                        ).strip(),
                     )
                 ] = i
 
@@ -349,7 +398,7 @@ class GitHubGraphQlClient:
                 i = raw_contribution_data[i_complete]
                 try:
                     repos[i][
-                        enums.RepoPinsStatsContributionData.DATA.value
+                        enums.RepoPinsResDictKeys.CONTRIBUTION.value
                     ] = i_complete.result()
                 except (
                     GitHubGraphQlClientError,
@@ -358,7 +407,7 @@ class GitHubGraphQlClient:
                     HTTPError,
                     RequestException,
                 ):
-                    repos[i][enums.RepoPinsStatsContributionData.DATA.value] = []
+                    repos[i][enums.RepoPinsResDictKeys.CONTRIBUTION.value] = []
         return repos
 
     @property
@@ -384,7 +433,7 @@ class GitHubGraphQlClient:
             body_json={
                 "query": self.__GRAPH_QL_REPO_PIN_QUERY_STR,
                 "variables": {
-                    "login": self.__gh_config_data.username,
+                    enums.RepoPinsResDictKeys.LOGIN.value: self.__gh_config_data.username,
                     "num": num_repos if num_repos else self.__fetch_limit,
                 },
             },
@@ -406,7 +455,7 @@ class GitHubGraphQlClient:
                     else self.__GRAPH_QL_REPO_OWN_QUERY_STR
                 ),
                 "variables": {
-                    "login": self.__gh_config_data.username,
+                    enums.RepoPinsResDictKeys.LOGIN.value: self.__gh_config_data.username,
                     "num": self.__fetch_limit,
                     "field": (
                         order_field.name
@@ -430,9 +479,9 @@ class GitHubGraphQlClient:
             body_json={
                 "query": self.__GRAPH_QL_REPO_NAME_QUERY_STR,
                 "variables": {
-                    "login": self.__gh_config_data.username,
-                    "owner": repo_owner,
-                    "name": repo_name,
+                    enums.RepoPinsResDictKeys.LOGIN.value: self.__gh_config_data.username,
+                    enums.RepoPinsResDictKeys.OWNER.value: repo_owner,
+                    enums.RepoPinsResDictKeys.NAME.value: repo_name,
                 },
             },
             repo_data_key="repository",

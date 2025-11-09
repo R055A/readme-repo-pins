@@ -6,22 +6,19 @@ from gh_profile_repo_pins.utils import (
     get_md_grid_pin_str,
     get_html_grid_pin_str,
 )
+from gh_profile_repo_pins.repo_pins_img.repo_pins_img_data import RepoPinImgData
 from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageThemeError
-from gh_profile_repo_pins.repo_pins_img_data import RepoPinImgData
-from gh_profile_repo_pins.repo_pins_img_svg import RepoPinImg
+from gh_profile_repo_pins.repo_pins_img.repo_pins_img_svg import RepoPinImg
 import gh_profile_repo_pins.repo_pins_enum as enums
 
 
 class GenerateRepoPins:
 
-    __REPO_NAME_KEY: str = "name"
-    __REPO_URL_KEY: str = "url"
-
     def __init__(
         self,
         repo_pins_data: list[dict[str, str | int | bool | dict[str, str]]],
         user_repo_owner: str,
-        username: str,
+        login: str,
         theme: str | dict,
         bg_img: dict | str = None,
     ) -> None:
@@ -32,7 +29,7 @@ class GenerateRepoPins:
                 RepoPinImgData.format_repo_pin_data(
                     repo_data=i,
                     user_repo_owner=user_repo_owner,
-                    username=username,
+                    login=login,
                     theme_name=self.__get_repo_theme_data(theme=theme, repo_data_i=i),
                     bg_img=self.__get_repo_bg_img_data(bg_img=bg_img, repo_data_i=i),
                 )
@@ -50,8 +47,10 @@ class GenerateRepoPins:
             repo_img_key: list[str] = [
                 k
                 for k in repo_data.keys()
-                if repo_data_i.get(self.__REPO_NAME_KEY).lower() in k.lower()
-                and k.lower() in (repo_data_i.get(self.__REPO_URL_KEY) or "").lower()
+                if repo_data_i.get(enums.RepoPinsResDictKeys.NAME.value).lower()
+                in k.lower()
+                and k.lower()
+                in (repo_data_i.get(enums.RepoPinsResDictKeys.URL.value) or "").lower()
             ]
             return repo_img_key[0] if repo_img_key else None
         return None
@@ -78,15 +77,15 @@ class GenerateRepoPins:
             if (
                 repo_img_key
                 and isinstance(bg_img.get(repo_img_key), dict)
-                and bg_img.get(repo_img_key).get("img")
+                and bg_img.get(repo_img_key).get(enums.RepoPinsResDictKeys.IMG.value)
             ):
                 return bg_img.get(repo_img_key)
             elif (
                 bg_img.values()
                 and not isinstance(list(bg_img.values())[0], dict)
-                and bg_img.get("img")
+                and bg_img.get(enums.RepoPinsResDictKeys.IMG.value)
             ):
-                return bg_img.get("img")
+                return bg_img.get(enums.RepoPinsResDictKeys.IMG.value)
         elif bg_img and isinstance(bg_img, str):
             return bg_img
         return None
