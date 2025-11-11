@@ -18,8 +18,12 @@ class RepoPinStats:
     __CO_AUTHOR_LABEL: str = "Co-Authored-By:"
     __EMAIL_OPEN_BRACKET: str = " <"
 
-    __AUTHOR_REG: Pattern = compile(pattern=r"^{}\s+(.+?)\s*<([^>]+)>\s*$".format(__AUTHOR_LABEL))
-    __CO_AUTHOR_REG: Pattern = compile(pattern=r"^\s*{}\s*(.+?)\s*<([^>]+)>\s*$".format(__CO_AUTHOR_LABEL), flags=I)
+    __AUTHOR_REG: Pattern = compile(
+        pattern=r"^{}\s+(.+?)\s*<([^>]+)>\s*$".format(__AUTHOR_LABEL)
+    )
+    __CO_AUTHOR_REG: Pattern = compile(
+        pattern=r"^\s*{}\s*(.+?)\s*<([^>]+)>\s*$".format(__CO_AUTHOR_LABEL), flags=I
+    )
     __NUMSTAT_REG: Pattern = compile(pattern=r"^\d+\t\d+\t")
 
     def __init__(self, gh_token: str = None) -> None:
@@ -93,25 +97,35 @@ class RepoPinStats:
             commit_authors: list[str] = []
             for commit_line in commit_data.stdout.splitlines():
                 if self.__AUTHOR_REG.fullmatch(string=commit_line):
-                    commit_authors = [self.__format_author_str(author_str=commit_line.split(self.__AUTHOR_LABEL)[-1])]
+                    commit_authors = [
+                        self.__format_author_str(
+                            author_str=commit_line.split(self.__AUTHOR_LABEL)[-1]
+                        )
+                    ]
                     continue
                 co_author = self.__CO_AUTHOR_REG.search(string=commit_line.lower())
                 if co_author:
-                    commit_authors.append(self.__format_author_str(
-                        author_str=co_author.group(1).strip().split(self.__CO_AUTHOR_LABEL)[-1]
-                    ))
+                    commit_authors.append(
+                        self.__format_author_str(
+                            author_str=co_author.group(1)
+                            .strip()
+                            .split(self.__CO_AUTHOR_LABEL)[-1]
+                        )
+                    )
                     continue
 
                 if commit_authors and self.__NUMSTAT_REG.match(string=commit_line):
                     add_str, del_str, _ = commit_line.split(sep="\t")
                     if add_str.isdigit() and del_str.isdigit():
                         for commit_author in commit_authors:
-                            repo_file_changes_add[commit_author] = repo_file_changes_add.get(
-                                commit_author, 0
-                            ) + int(add_str)
-                            repo_file_changes_del[commit_author] = repo_file_changes_del.get(
-                                commit_author, 0
-                            ) + int(del_str)
+                            repo_file_changes_add[commit_author] = (
+                                repo_file_changes_add.get(commit_author, 0)
+                                + int(add_str)
+                            )
+                            repo_file_changes_del[commit_author] = (
+                                repo_file_changes_del.get(commit_author, 0)
+                                + int(del_str)
+                            )
 
         except CalledProcessError as err:
             raise RepoPinStatsError(
@@ -120,7 +134,9 @@ class RepoPinStats:
         finally:
             rmtree(path=tmp_dir, ignore_errors=True)
 
-        commit_authors: set[str] = set(repo_file_changes_add.keys()) | set(repo_file_changes_del.keys())
+        commit_authors: set[str] = set(repo_file_changes_add.keys()) | set(
+            repo_file_changes_del.keys()
+        )
         return [
             {
                 enums.RepoPinsResDictKeys.LOGIN.value: commit_author,
