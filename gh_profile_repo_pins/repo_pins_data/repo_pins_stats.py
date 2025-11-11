@@ -97,11 +97,17 @@ class RepoPinStats:
             commit_authors: list[str] = []
             for commit_line in commit_data.stdout.splitlines():
                 if self.__AUTHOR_REG.fullmatch(string=commit_line):
-                    commit_authors = [self.__format_author_str(author_str=commit_line.split(self.__AUTHOR_LABEL)[-1])]
+                    commit_authors = [
+                        self.__format_author_str(
+                            author_str=commit_line.split(self.__AUTHOR_LABEL)[-1]
+                        )
+                    ]
                     continue
                 co_author = self.__CO_AUTHOR_REG.search(string=commit_line)
                 if co_author:
-                    commit_authors.append(self.__format_author_str(author_str=co_author.group(1).strip()))
+                    commit_authors.append(
+                        self.__format_author_str(author_str=co_author.group(1).strip())
+                    )
                     continue
 
                 if commit_authors and self.__NUMSTAT_REG.match(string=commit_line):
