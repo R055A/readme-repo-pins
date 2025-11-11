@@ -746,6 +746,18 @@ class RepoPinImg:
         footer_y: float = max(0.0, self.__HEIGHT - self.__PADDING)
         footer_h: float = self.__META_SIZE
 
+        repo_icon: list[str] = (
+            [self.__ICON_REPO_PRIVATE_INNER, self.__ICON_REPO_PRIVATE_OUTER]
+            if self.__repo_pin_data.is_private
+            else [
+                (
+                    self.__ICON_REPO_TEMPLATE
+                    if self.__repo_pin_data.is_template
+                    else self.__ICON_REPO
+                )
+            ]
+        )
+
         self.__svg_str = f"""<?xml version="1.0" encoding="UTF-8"?>
         <svg 
           width="{self.__WIDTH}" 
@@ -777,22 +789,12 @@ class RepoPinImg:
             {"".join(
                 [
                     self.__render_icon(
-                        path_d=stats_icon, 
+                        path_d=icon, 
                         x=self.__PADDING, 
                         y=header_y - (self.__NAME_SIZE * 0.85),
                         size=self.__PADDING,
                     )
-                    for stats_icon in (
-                        [
-                            self.__ICON_REPO_PRIVATE_INNER,
-                            self.__ICON_REPO_PRIVATE_OUTER
-                        ] 
-                        if self.__repo_pin_data.is_private 
-                        else
-                        [
-                            self.__ICON_REPO_TEMPLATE if self.__repo_pin_data.is_template else self.__ICON_REPO
-                        ]
-                    )
+                    for icon in repo_icon
                 ]
             )}
         """
