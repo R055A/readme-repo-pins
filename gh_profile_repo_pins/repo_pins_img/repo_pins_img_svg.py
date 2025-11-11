@@ -181,7 +181,7 @@ class RepoPinImg:
 
     def __repo_name(
         self, header_y: float, name_badge_gap: float, badge_w: float
-    ) -> tuple[float, str]:
+    ) -> None:
         name_x: float = self.__PADDING + round(18 * self.__SCALE)
         max_name_w: float = (
             (self.__WIDTH - self.__PADDING)
@@ -210,8 +210,6 @@ class RepoPinImg:
         self.__svg_str += f'<tspan font-weight="700">{owner_repo[-1]}</tspan>'
         self.__svg_str += "</text>"
         self.__href_link_close()
-
-        return name_x, display_name
 
     def __badge_layout(
         self, header_y: float
