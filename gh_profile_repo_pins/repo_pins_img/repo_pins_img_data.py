@@ -1,5 +1,5 @@
-from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageMediaError
 from gh_profile_repo_pins.repo_pins_img.repo_pins_img_media import RepoPinImgMedia
+from gh_profile_repo_pins.repo_pins_exceptions import RepoPinImageMediaError
 import gh_profile_repo_pins.repo_pins_enum as enums
 from dataclasses import dataclass
 from urllib.parse import urlparse
@@ -183,7 +183,7 @@ class RepoPinImgData:
             f"{f"\nissues (open): {self.issue_open_count}" if self.issue_open_count else ""}"
             f"{f"\nissues (open, help wanted): {self.issue_help_count}" if self.issue_help_count else ""}"
             f"{f"\npull requests (open): {self.pull_request_count}" if self.pull_request_count else ""}"
-            f"{f"\ncontributors (default branch commits): {self.contributor_count}" if self.contributor_count else ""}"
+            f"{f"\ncontributors (default branch): {self.contributor_count}" if self.contributor_count else ""}"
             f"{f"\ncontributions (%): {str(round(self.contribution_perc, 2)).rstrip("0").rstrip(".")}" 
             if self.contribution_perc else ""}"
             f"\ntheme: {self.theme.value if self.theme else "None"}"

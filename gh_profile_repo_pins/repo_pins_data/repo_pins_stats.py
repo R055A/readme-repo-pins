@@ -2,6 +2,7 @@ from gh_profile_repo_pins.repo_pins_exceptions import RepoPinStatsError
 from subprocess import run, PIPE, CompletedProcess, CalledProcessError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import gh_profile_repo_pins.repo_pins_enum as enums
+from re import compile, I, Pattern
 from tempfile import mkdtemp
 from shutil import rmtree
 from os import environ
@@ -12,6 +13,14 @@ class RepoPinStats:
     __TMP_DIR: str = "tmp_git"
     __IS_CALLED_PROCESS_ERR: bool = True
     __MAX_WORKERS: int = 8
+
+    __AUTHOR_LABEL: str = "@@AUTHOR@@"
+    __CO_AUTHOR_LABEL: str = "Co-Authored-By:"
+    __EMAIL_OPEN_BRACKET: str = " <"
+
+    __AUTHOR_REG: Pattern = compile(pattern=r"^{}\s+(.+?)\s*<([^>]+)>\s*$".format(__AUTHOR_LABEL))
+    __CO_AUTHOR_REG: Pattern = compile(pattern=r"^\s*{}\s*(.+?)\s*<([^>]+)>\s*$".format(__CO_AUTHOR_LABEL), flags=I)
+    __NUMSTAT_REG: Pattern = compile(pattern=r"^\d+\t\d+\t")
 
     def __init__(self, gh_token: str = None) -> None:
         self.__gh_token: str = gh_token
@@ -33,55 +42,6 @@ class RepoPinStats:
             env=env,
         )
 
-    def __get_ref(self, tmp_dir: str) -> str | None:
-        for _ in range(2):
-            try:
-                ref: str = self.__get_completed_process(
-                    args=[
-                        "git",
-                        "-C",
-                        tmp_dir,
-                        "symbolic-ref",
-                        "--quiet",
-                        "--short",
-                        "refs/remotes/origin/HEAD",
-                    ]
-                ).stdout
-                if ref:
-                    return ref.strip()
-
-                self.__get_completed_process(
-                    args=["git", "-C", tmp_dir, "remote", "set-head", "origin", "-a"]
-                )
-            except CalledProcessError:
-                continue
-
-        try:
-            for line in self.__get_completed_process(
-                args=["git", "-C", tmp_dir, "ls-remote", "--symref", "origin", "HEAD"]
-            ).stdout.splitlines():
-                if line.startswith("ref: ") and "\tHEAD" in line:
-                    return f"origin/{line.split()[1].split("/")[-1]}"
-        except CalledProcessError:
-            pass
-
-        for default_branch in ["main", "master"]:
-            try:
-                self.__get_completed_process(
-                    args=[
-                        "git",
-                        "-C",
-                        tmp_dir,
-                        "show-ref",
-                        "--verify",
-                        f"refs/remotes/origin/{default_branch}",
-                    ]
-                )
-                return f"origin/{default_branch}"
-            except CalledProcessError:
-                continue
-        return None
-
     def __fetch_git_commit_data(
         self, url: str, tmp_dir: str
     ) -> CompletedProcess[str] | None:
@@ -89,34 +49,12 @@ class RepoPinStats:
             args=[
                 "git",
                 "clone",
-                "--filter=blob:none",
-                "--no-checkout",
+                "--no-tags",
+                "--single-branch",
                 url,
                 tmp_dir,
             ]
         )
-        self.__get_completed_process(
-            args=[
-                "git",
-                "-C",
-                tmp_dir,
-                "fetch",
-                "origin",
-                "+refs/heads/*:refs/remotes/origin/*",
-                "--filter=blob:none",
-            ]
-        )
-
-        ref: str = self.__get_ref(tmp_dir=tmp_dir)
-        if not ref:
-            return None
-        try:
-            self.__get_completed_process(
-                args=["git", "-C", tmp_dir, "rev-list", "-n", "1", ref]
-            )
-        except CalledProcessError:
-            return None
-
         return self.__get_completed_process(
             args=[
                 "git",
@@ -125,13 +63,16 @@ class RepoPinStats:
                 "-c",
                 "i18n.logOutputEncoding=UTF-8",
                 "log",
-                ref,
+                "HEAD",
                 "--use-mailmap",
                 "--no-merges",
                 "--numstat",
-                "--format=%aN <%aE>",
+                "--format={} %aN <%aE>%n%B%n".format(self.__AUTHOR_LABEL),
             ]
         )
+
+    def __format_author_str(self, author_str: str) -> str:
+        return author_str.strip().lower().split(self.__EMAIL_OPEN_BRACKET)[0].strip()
 
     def __fetch_repo_stats(
         self, owner_repo: str
@@ -141,29 +82,37 @@ class RepoPinStats:
         )
         tmp_dir: str = mkdtemp(prefix=self.__TMP_DIR)
 
-        repo_changes_add, repo_changes_del = {}, {}
+        repo_file_changes_add, repo_file_changes_del = {}, {}
         try:
             commit_data: CompletedProcess[str] | None = self.__fetch_git_commit_data(
                 url=url, tmp_dir=tmp_dir
             )
             if not commit_data or not commit_data.stdout:
                 return []
-            cur_commit_author: str | None = None
+
+            commit_authors: list[str] = []
             for commit_line in commit_data.stdout.splitlines():
-                if commit_line.endswith(">") and " <" in commit_line:
-                    cur_commit_author = commit_line
+                if self.__AUTHOR_REG.fullmatch(string=commit_line):
+                    commit_authors = [self.__format_author_str(author_str=commit_line.split(self.__AUTHOR_LABEL)[-1])]
+                    continue
+                co_author = self.__CO_AUTHOR_REG.search(string=commit_line.lower())
+                if co_author:
+                    commit_authors.append(self.__format_author_str(
+                        author_str=co_author.group(1).strip().split(self.__CO_AUTHOR_LABEL)[-1]
+                    ))
                     continue
 
-                commit_line_tokens: list[str] = commit_line.split(sep="\t")
-                if len(commit_line_tokens) == 3 and cur_commit_author:
-                    a, d, _ = commit_line_tokens
-                    if a.isdigit() and d.isdigit():
-                        repo_changes_add[cur_commit_author] = repo_changes_add.get(
-                            cur_commit_author, 0
-                        ) + int(a)
-                        repo_changes_del[cur_commit_author] = repo_changes_del.get(
-                            cur_commit_author, 0
-                        ) + int(d)
+                if commit_authors and self.__NUMSTAT_REG.match(string=commit_line):
+                    add_str, del_str, _ = commit_line.split(sep="\t")
+                    if add_str.isdigit() and del_str.isdigit():
+                        for commit_author in commit_authors:
+                            repo_file_changes_add[commit_author] = repo_file_changes_add.get(
+                                commit_author, 0
+                            ) + int(add_str)
+                            repo_file_changes_del[commit_author] = repo_file_changes_del.get(
+                                commit_author, 0
+                            ) + int(del_str)
+
         except CalledProcessError as err:
             raise RepoPinStatsError(
                 msg=f"Git process error: {err.stderr.strip() or err.stdout.strip() or err}"
@@ -171,15 +120,13 @@ class RepoPinStats:
         finally:
             rmtree(path=tmp_dir, ignore_errors=True)
 
-        commit_authors: set[str] = set(repo_changes_add) | set(repo_changes_del)
+        commit_authors: set[str] = set(repo_file_changes_add.keys()) | set(repo_file_changes_del.keys())
         return [
             {
-                enums.RepoPinsResDictKeys.LOGIN.value: commit_author.split(" <")[0]
-                .strip()
-                .lower(),
+                enums.RepoPinsResDictKeys.LOGIN.value: commit_author,
                 enums.RepoPinsResDictKeys.STATS.value: (
-                    repo_changes_add.get(commit_author, 0)
-                    + repo_changes_del.get(commit_author, 0)
+                    repo_file_changes_add.get(commit_author, 0)
+                    + repo_file_changes_del.get(commit_author, 0)
                 ),
             }
             for commit_author in commit_authors

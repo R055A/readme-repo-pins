@@ -1,10 +1,11 @@
-from deep_translator import GoogleTranslator
+from gh_profile_repo_pins.utils import get_logger, Logger
 from langdetect import detect, DetectorFactory
+from deep_translator import GoogleTranslator
 
 
 class RepoPinImgTranslator(GoogleTranslator):
 
-    # 20 more commonly used languages supported by langdetect (~1-2 s per language translation)
+    # 21 more commonly used languages supported by langdetect (~1-2 s per language translation)
     __COMMON_LANGS: list[str] = [
         "en",
         "es",
@@ -1020,16 +1021,23 @@ class RepoPinImgTranslator(GoogleTranslator):
         self.__dt_langs: list[str] = list(
             self.get_supported_languages(as_dict=True).values()
         )  # deep_translate langs
+        self.__log: Logger = get_logger()
 
     def translate_all(self, input_txt: str) -> dict[str, str]:
         translations: dict[str, str] = (
             self.__STATIC_TRANSLATIONS.get(input_txt.lower(), {}) or {}
         )
         if not translations:
-            input_txt_lang: str = detect(text=input_txt)
-            translations[input_txt_lang] = input_txt
-            for target_lang in self.__COMMON_LANGS:
-                if target_lang in self.__dt_langs:
-                    self.target = target_lang
-                    translations[target_lang] = self.translate(text=input_txt)
+            try:
+                input_txt_lang: str = detect(text=input_txt)
+                translations[input_txt_lang] = input_txt
+            except Exception as err:
+                self.__log.error(msg=f"Language detect: {input_txt}: {str(err)}")
+            try:
+                for target_lang in self.__COMMON_LANGS:
+                    if target_lang in self.__dt_langs:
+                        self.target = target_lang
+                        translations[target_lang] = self.translate(text=input_txt)
+            except Exception as err:
+                self.__log.error(msg=f"Translate: {input_txt}: {str(err)}")
         return translations
