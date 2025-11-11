@@ -14,7 +14,7 @@ import gh_profile_repo_pins.repo_pins_enum as enums
 class ReadMeRepoPins:
 
     __DEFAULT_MAX_NUM_PINS: int = 6
-    __LIMIT_MAX_NUM_PINS: int = 40
+    __LIMIT_MAX_NUM_PINS: int = 100
     __DEFAULT_ORDER_FIELD: enums.RepositoryOrderFieldEnum = (
         enums.RepositoryOrderFieldEnum.STARGAZERS
     )
@@ -141,7 +141,8 @@ class ReadMeRepoPins:
         gen_repo_pins: GenerateRepoPins = GenerateRepoPins(
             repo_pins_data=self.__repo_pins,
             user_repo_owner=self.__user_repo_owner,
-            login=self.__gh_api_client.user_name.strip().lower(),
+            login_username=self.__gh_api_client.username.strip().lower(),
+            login_user_name=self.__gh_api_client.user_name.strip().lower(),
             theme=self.__theme,
             bg_img=self.__bg_img,
         )

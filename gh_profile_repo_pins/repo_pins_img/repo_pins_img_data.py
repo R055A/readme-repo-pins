@@ -44,7 +44,8 @@ class RepoPinImgData:
         cls,
         repo_data: dict,
         user_repo_owner: str,
-        login: str,
+        login_username: str,
+        login_user_name: str,
         theme_name: enums.RepoPinsImgThemeName = enums.RepoPinsImgThemeName.GITHUB_SOFT,
         bg_img: dict | str = None,
     ) -> "RepoPinImgData":
@@ -120,12 +121,20 @@ class RepoPinImgData:
             contributor_count=len(list(contributions.keys())),
             contribution_perc=(
                 (
-                    contributions.get(login, 0)
+                    contributions.get(login_user_name, 0)
                     / sum([v for _, v in contributions.items()])
                 )
                 * 100
-                if contributions.get(login, 0)
-                else 0
+                if contributions.get(login_user_name, 0)
+                else (
+                    (
+                        contributions.get(login_username, 0)
+                        / sum([v for _, v in contributions.items()])
+                    )
+                    * 100
+                    if contributions.get(login_username, 0)
+                    else 0
+                )
             ),
             description=repo_data.get(enums.RepoPinsResDictKeys.DESCRIPTION.value, "")
             or "",
