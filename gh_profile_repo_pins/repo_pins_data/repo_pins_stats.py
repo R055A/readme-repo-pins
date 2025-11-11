@@ -116,11 +116,11 @@ class RepoPinStats:
                         for commit_author in commit_authors:
                             repo_file_changes_add[commit_author] = (
                                 repo_file_changes_add.get(commit_author, 0)
-                                + int(add_str)
+                                + int(add_str) // len(commit_authors)
                             )
                             repo_file_changes_del[commit_author] = (
                                 repo_file_changes_del.get(commit_author, 0)
-                                + int(del_str)
+                                + int(del_str) // len(commit_authors)
                             )
 
         except CalledProcessError as err:
