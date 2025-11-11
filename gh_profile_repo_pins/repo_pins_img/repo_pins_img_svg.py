@@ -181,7 +181,7 @@ class RepoPinImg:
 
     def __repo_name(
         self, header_y: float, name_badge_gap: float, badge_w: float
-    ) -> tuple[float, str]:
+    ) -> None:
         name_x: float = self.__PADDING + round(18 * self.__SCALE)
         max_name_w: float = (
             (self.__WIDTH - self.__PADDING)
@@ -211,27 +211,27 @@ class RepoPinImg:
         self.__svg_str += "</text>"
         self.__href_link_close()
 
-        return name_x, display_name
-
     def __badge_layout(
-        self,
-        header_y: float,
-        font_size: float,
-        repo_name_x: float,
-        display_name: str,
-        name_badge_gap: float,
-        badge_w: float,
-    ) -> tuple[float, float, float]:
-        badge_h: float = round(font_size + self.__ROUNDING * 1.1)
-        badge_x: float = min(
-            repo_name_x
-            + self.__measure(txt=display_name, font_px=self.__NAME_SIZE)
-            + name_badge_gap
-            + max(4.0, 7.0 * self.__SCALE, 0.3 * self.__NAME_SIZE),
-            (self.__WIDTH - self.__PADDING) - badge_w,
+        self, header_y: float
+    ) -> tuple[float, float, float, float, float, str]:
+        badge_txt: str = (
+            self.__BADGE_PRIVATE
+            if self.__repo_pin_data.is_private
+            else self.__BADGE_PUBLIC
+        ) + (
+            self.__BADGE_ARCHIVE
+            if self.__repo_pin_data.is_archived
+            else (self.__BADGE_TEMPLATE if self.__repo_pin_data.is_template else "")
         )
+        badge_font_size: float = self.__NAME_SIZE * 0.7
+        badge_w: float = (
+            int(round(self.__measure(txt=badge_txt, font_px=badge_font_size) + 0.5))
+            + self.__PADDING
+        )
+        badge_h: float = round(badge_font_size + self.__ROUNDING * 1.1)
+        badge_x: float = (self.__WIDTH - self.__PADDING) - badge_w
         badge_y: float = header_y - (badge_h * 0.8)
-        return badge_x, badge_y, badge_h
+        return badge_x, badge_y, badge_h, badge_w, badge_font_size, badge_txt
 
     def __badge(
         self,
@@ -297,34 +297,15 @@ class RepoPinImg:
         return svg_switch
 
     def __header(self, header_y: float) -> None:
-        badge_txt: str = (
-            self.__BADGE_PRIVATE
-            if self.__repo_pin_data.is_private
-            else self.__BADGE_PUBLIC
-        ) + (
-            self.__BADGE_ARCHIVE
-            if self.__repo_pin_data.is_archived
-            else (self.__BADGE_TEMPLATE if self.__repo_pin_data.is_template else "")
+        badge_x, badge_y, badge_h, badge_w, badge_font_size, badge_txt = (
+            self.__badge_layout(header_y=header_y)
         )
-        badge_font_size: float = self.__NAME_SIZE * 0.7
-        badge_w: float = (
-            int(round(self.__measure(txt=badge_txt, font_px=badge_font_size) + 0.5))
-            + self.__PADDING
-        )
-        name_badge_gap: float = round(self.__NAME_SIZE * 0.6)
 
-        repo_name_x, display_name = self.__repo_name(
+        name_badge_gap: float = round(self.__NAME_SIZE * 0.6)
+        self.__repo_name(
             header_y=header_y, name_badge_gap=name_badge_gap, badge_w=badge_w
         )
 
-        badge_x, badge_y, badge_h = self.__badge_layout(
-            header_y=header_y,
-            font_size=badge_font_size,
-            repo_name_x=repo_name_x,
-            display_name=display_name,
-            name_badge_gap=name_badge_gap,
-            badge_w=badge_w,
-        )
         self.__svg_str += self.__badge_multi_lang(
             badge_x=badge_x,
             badge_y=badge_y,
@@ -922,7 +903,7 @@ def tst_svg_render(
             ],
         },
         {
-            enums.RepoPinsResDictKeys.NAME.value: "readme-repo-pins-readme-repo-pins",
+            enums.RepoPinsResDictKeys.NAME.value: "readme-repo-pins-readme-repo-pins-badge-repo-pins",
             enums.RepoPinsResDictKeys.STARS.value: 0,
             enums.RepoPinsResDictKeys.FORK_COUNT.value: 0,
             enums.RepoPinsResDictKeys.ISSUES.value: {
