@@ -39,6 +39,14 @@ class RepoPinImg:
         "1-1.485-.212A2.501 2.501 0 0 1 4.144.025a.75.75 0 0 1 .848.637ZM2.75 4a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 "
         "1-1.5 0v-1.5A.75.75 0 0 1 2.75 4Zm10.5 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5a.75.75 0 0 1 .75-.75Z"
     )
+    __ICON_REPO_PRIVATE_INNER: str = (
+        "M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0V1.5h-8a1 1 0 0 0-1 1v6.708A2.492 "
+        "2.492 0 0 1 4.5 9h1.75a.75.75 0 0 1 0 1.5H4.5a1 1 0 1 0 0 2h1.75a.75.75 0 0 1 0 1.5H4.5A2.5 2.5 0 0 1 2 11.5v-9Z"
+    )
+    __ICON_REPO_PRIVATE_OUTER: str = (
+        "M9 10.168V9a3 3 0 1 1 6 0v1.168c.591.281 1 .884 1 1.582v2.5A1.75 1.75 0 0 1 14.25 16h-4.5A1.75 1.75 0 0 1 8 "
+        "14.25v-2.5c0-.698.409-1.3 1-1.582ZM13.5 10V9a1.5 1.5 0 0 0-3 0v1Z"
+    )
     __ICON_STAR: str = (
         "M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 "
         "4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 "
@@ -766,11 +774,26 @@ class RepoPinImg:
               fill="var(--canvas)" 
               stroke="var(--border)"
             />
-            {self.__render_icon(
-                path_d=self.__ICON_REPO_TEMPLATE if self.__repo_pin_data.is_template else self.__ICON_REPO, 
-                x=self.__PADDING, 
-                y=header_y - (self.__NAME_SIZE * 0.85),
-                size=self.__PADDING,
+            {"".join(
+                [
+                    self.__render_icon(
+                        path_d=stats_icon, 
+                        x=self.__PADDING, 
+                        y=header_y - (self.__NAME_SIZE * 0.85),
+                        size=self.__PADDING,
+                    )
+                    for stats_icon in (
+                        [
+                            self.__ICON_REPO_PRIVATE_INNER,
+                            self.__ICON_REPO_PRIVATE_OUTER
+                        ] 
+                        if self.__repo_pin_data.is_private 
+                        else
+                        [
+                            self.__ICON_REPO_TEMPLATE if self.__repo_pin_data.is_template else self.__ICON_REPO
+                        ]
+                    )
+                ]
             )}
         """
         if self.__repo_pin_data.bg_img:
