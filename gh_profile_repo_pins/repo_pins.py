@@ -143,6 +143,7 @@ class ReadMeRepoPins:
             user_repo_owner=self.__user_repo_owner,
             login_username=self.__gh_api_client.username.strip().lower(),
             login_user_name=self.__gh_api_client.user_name.strip().lower(),
+            login_email=f"{self.__gh_api_client.user_id}+{self.__gh_api_client.username}@users.noreply.github.com",
             theme=self.__theme,
             bg_img=self.__bg_img,
         )

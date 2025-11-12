@@ -15,7 +15,7 @@ class RepoPinStats:
     __MAX_WORKERS: int = 8
 
     __AUTHOR_LABEL: str = "@@AUTHOR@@"
-    __CO_AUTHOR_LABEL: str = "Co-Authored-By:"
+    __CO_AUTHOR_LABEL: str = "Co-authored-by:"
     __EMAIL_OPEN_BRACKET: str = " <"
 
     __AUTHOR_REG: Pattern = compile(
@@ -75,8 +75,13 @@ class RepoPinStats:
             ]
         )
 
-    def __format_author_str(self, author_str: str) -> str:
-        return author_str.strip().lower().split(self.__EMAIL_OPEN_BRACKET)[0].strip()
+    def __format_author_email_str(self, author_str: str) -> tuple[str, str]:
+        author_email: list[str] = author_str.lower().split(self.__EMAIL_OPEN_BRACKET)
+        return author_email[0].strip(), (
+            author_email[1].strip().rstrip(">").strip()
+            if len(author_email) > 1
+            else None
+        )
 
     def __fetch_repo_stats(
         self, owner_repo: str
@@ -86,7 +91,11 @@ class RepoPinStats:
         )
         tmp_dir: str = mkdtemp(prefix=self.__TMP_DIR)
 
-        repo_file_changes_add, repo_file_changes_del = {}, {}
+        repo_file_changes_add, repo_file_changes_del, commit_log_author_emails = (
+            {},
+            {},
+            {},
+        )
         try:
             commit_data: CompletedProcess[str] | None = self.__fetch_git_commit_data(
                 url=url, tmp_dir=tmp_dir
@@ -94,34 +103,76 @@ class RepoPinStats:
             if not commit_data or not commit_data.stdout:
                 return []
 
-            commit_authors: list[str] = []
+            commit_authors_emails: list[tuple[str, str]] = []
             for commit_line in commit_data.stdout.splitlines():
                 if self.__AUTHOR_REG.fullmatch(string=commit_line):
-                    commit_authors = [
-                        self.__format_author_str(
-                            author_str=commit_line.split(self.__AUTHOR_LABEL)[-1]
+                    commit_authors_emails = [
+                        self.__format_author_email_str(
+                            author_str=commit_line.split(self.__AUTHOR_LABEL)[
+                                -1
+                            ].strip()
                         )
                     ]
                     continue
                 co_author = self.__CO_AUTHOR_REG.search(string=commit_line)
                 if co_author:
-                    commit_authors.append(
-                        self.__format_author_str(author_str=co_author.group(1).strip())
+                    commit_authors_emails.append(
+                        self.__format_author_email_str(
+                            author_str=co_author.group()
+                            .lower()
+                            .split(self.__CO_AUTHOR_LABEL.lower())[1]
+                            .strip()
+                        )
                     )
                     continue
 
-                if commit_authors and self.__NUMSTAT_REG.match(string=commit_line):
+                if commit_authors_emails and self.__NUMSTAT_REG.match(
+                    string=commit_line
+                ):
                     add_str, del_str, _ = commit_line.split(sep="\t")
                     if add_str.isdigit() and del_str.isdigit():
-                        for commit_author in commit_authors:
-                            repo_file_changes_add[commit_author] = (
-                                repo_file_changes_add.get(commit_author, 0)
-                                + int(add_str) // len(commit_authors)
+                        is_email_match: bool = False
+                        for commit_author, commit_email in commit_authors_emails:
+                            commit_author_key: str = commit_author
+                            for (
+                                commit_log_author,
+                                commit_log_id,
+                            ) in commit_log_author_emails.items():
+                                for commit_log_email in commit_log_id.get(
+                                    enums.RepoPinsResDictKeys.EMAIL.value, set()
+                                ):
+                                    if commit_log_email == commit_email:
+                                        if len(commit_log_author) > len(commit_author):
+                                            commit_author_key = commit_log_author
+                                        is_email_match = True
+                                        break
+                                if is_email_match:
+                                    break
+
+                            repo_file_changes_add[commit_author_key] = (
+                                repo_file_changes_add.get(commit_author_key, 0)
+                                + int(add_str) // len(commit_authors_emails)
                             )
-                            repo_file_changes_del[commit_author] = (
-                                repo_file_changes_del.get(commit_author, 0)
-                                + int(del_str) // len(commit_authors)
+                            repo_file_changes_del[commit_author_key] = (
+                                repo_file_changes_del.get(commit_author_key, 0)
+                                + int(del_str) // len(commit_authors_emails)
                             )
+
+                            commit_log_author_emails[commit_author_key] = (
+                                commit_log_author_emails.get(
+                                    commit_author_key,
+                                    {
+                                        enums.RepoPinsResDictKeys.AUTHOR.value: set(),
+                                        enums.RepoPinsResDictKeys.EMAIL.value: set(),
+                                    },
+                                )
+                            )
+                            commit_log_author_emails[commit_author_key][
+                                enums.RepoPinsResDictKeys.AUTHOR.value
+                            ].add(commit_author)
+                            commit_log_author_emails[commit_author_key][
+                                enums.RepoPinsResDictKeys.EMAIL.value
+                            ].add(commit_email)
 
         except CalledProcessError as err:
             raise RepoPinStatsError(
@@ -130,15 +181,23 @@ class RepoPinStats:
         finally:
             rmtree(path=tmp_dir, ignore_errors=True)
 
-        commit_authors: set[str] = set(repo_file_changes_add.keys()) | set(
-            repo_file_changes_del.keys()
-        )
+        commit_authors: set[str] = set(repo_file_changes_add.keys())
         return [
             {
                 enums.RepoPinsResDictKeys.LOGIN.value: commit_author,
                 enums.RepoPinsResDictKeys.STATS.value: (
                     repo_file_changes_add.get(commit_author, 0)
                     + repo_file_changes_del.get(commit_author, 0)
+                ),
+                enums.RepoPinsResDictKeys.AUTHOR.value: (
+                    commit_log_author_emails[commit_author][
+                        enums.RepoPinsResDictKeys.AUTHOR.value
+                    ]
+                ),
+                enums.RepoPinsResDictKeys.EMAIL.value: (
+                    commit_log_author_emails[commit_author][
+                        enums.RepoPinsResDictKeys.EMAIL.value
+                    ]
                 ),
             }
             for commit_author in commit_authors

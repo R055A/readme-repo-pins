@@ -46,6 +46,7 @@ class RepoPinImgData:
         user_repo_owner: str,
         login_username: str,
         login_user_name: str,
+        login_email: str,
         theme_name: enums.RepoPinsImgThemeName = enums.RepoPinsImgThemeName.GITHUB_SOFT,
         bg_img: dict | str = None,
     ) -> "RepoPinImgData":
@@ -95,6 +96,31 @@ class RepoPinImgData:
             if (data.get(enums.RepoPinsResDictKeys.LOGIN.value, "") or "") != ""
         }
 
+        contribution_perc: float = 0
+        for contribution_data in (
+            repo_data.get(enums.RepoPinsResDictKeys.CONTRIBUTION.value, []) or []
+        ):
+            if (
+                login_user_name
+                in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
+                or login_username
+                in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
+                or login_email
+                in contribution_data.get(enums.RepoPinsResDictKeys.EMAIL.value, [])
+            ):
+                user_contributions: float = contributions.get(
+                    contribution_data.get(
+                        enums.RepoPinsResDictKeys.LOGIN.value
+                    ).strip(),
+                    0,
+                )
+                contribution_perc = (
+                    user_contributions
+                    / sum([v for _, v in contributions.items()])
+                    * 100
+                )
+                break
+
         return RepoPinImgData(
             repo_name=(
                 f"{repo_owner}/"
@@ -119,23 +145,7 @@ class RepoPinImgData:
             ).get(enums.RepoPinsResDictKeys.TTL_COUNT.value, 0)
             or 0,
             contributor_count=len(list(contributions.keys())),
-            contribution_perc=(
-                (
-                    contributions.get(login_user_name, 0)
-                    / sum([v for _, v in contributions.items()])
-                )
-                * 100
-                if contributions.get(login_user_name, 0)
-                else (
-                    (
-                        contributions.get(login_username, 0)
-                        / sum([v for _, v in contributions.items()])
-                    )
-                    * 100
-                    if contributions.get(login_username, 0)
-                    else 0
-                )
-            ),
+            contribution_perc=contribution_perc,
             description=repo_data.get(enums.RepoPinsResDictKeys.DESCRIPTION.value, "")
             or "",
             url=(

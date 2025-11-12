@@ -937,6 +937,7 @@ def tst_svg_render(
                 user_repo_owner=test_username,
                 login_username=test_username,
                 login_user_name=test_username,
+                login_email=f"12345678+{test_username}@users.noreply.github.com",
                 theme_name=enums.RepoPinsImgThemeName(test_theme_name),
                 bg_img=test_bg_img,
             )
