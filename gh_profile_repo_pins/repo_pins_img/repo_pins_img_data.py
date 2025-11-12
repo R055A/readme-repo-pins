@@ -119,6 +119,7 @@ class RepoPinImgData:
                     / sum([v for _, v in contributions.items()])
                     * 100
                 )
+                break
 
         return RepoPinImgData(
             repo_name=(
