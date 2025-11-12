@@ -108,13 +108,14 @@ class RepoPinImgData:
                 or login_email
                 in contribution_data.get(enums.RepoPinsResDictKeys.EMAIL.value, [])
             ):
+                user_contributions: float = contributions.get(
+                    contribution_data.get(
+                        enums.RepoPinsResDictKeys.LOGIN.value
+                    ).strip(),
+                    0,
+                )
                 contribution_perc = (
-                    contributions.get(
-                        contribution_data.get(
-                            enums.RepoPinsResDictKeys.LOGIN.value
-                        ).strip(),
-                        0,
-                    )
+                    user_contributions
                     / sum([v for _, v in contributions.items()])
                     * 100
                 )

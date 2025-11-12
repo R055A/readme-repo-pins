@@ -76,9 +76,7 @@ class RepoPinStats:
         )
 
     def __format_author_email_str(self, author_str: str) -> tuple[str, str]:
-        author_email: list[str] = (
-            author_str.strip().lower().split(self.__EMAIL_OPEN_BRACKET)
-        )
+        author_email: list[str] = author_str.lower().split(self.__EMAIL_OPEN_BRACKET)
         return author_email[0].strip(), (
             author_email[1].strip().rstrip(">").strip()
             if len(author_email) > 1
@@ -110,7 +108,9 @@ class RepoPinStats:
                 if self.__AUTHOR_REG.fullmatch(string=commit_line):
                     commit_authors_emails = [
                         self.__format_author_email_str(
-                            author_str=commit_line.split(self.__AUTHOR_LABEL)[-1]
+                            author_str=commit_line.split(self.__AUTHOR_LABEL)[
+                                -1
+                            ].strip()
                         )
                     ]
                     continue
@@ -131,6 +131,7 @@ class RepoPinStats:
                 ):
                     add_str, del_str, _ = commit_line.split(sep="\t")
                     if add_str.isdigit() and del_str.isdigit():
+                        is_email_match: bool = False
                         for commit_author, commit_email in commit_authors_emails:
                             commit_author_key: str = commit_author
                             for (
@@ -138,12 +139,15 @@ class RepoPinStats:
                                 commit_log_id,
                             ) in commit_log_author_emails.items():
                                 for commit_log_email in commit_log_id.get(
-                                    enums.RepoPinsResDictKeys.EMAIL.value
+                                    enums.RepoPinsResDictKeys.EMAIL.value, set()
                                 ):
                                     if commit_log_email == commit_email:
                                         if len(commit_log_author) > len(commit_author):
                                             commit_author_key = commit_log_author
+                                        is_email_match = True
                                         break
+                                if is_email_match:
+                                    break
 
                             repo_file_changes_add[commit_author_key] = (
                                 repo_file_changes_add.get(commit_author_key, 0)
