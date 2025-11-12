@@ -110,6 +110,8 @@ class RepoPinsResDictKeys(Enum):
     IMG = "img"
     CREATED_AT = "createdAt"
     DB_ID = "databaseId"
+    EMAIL = "email"
+    AUTHOR = "author"
 
 
 def update_enum(enum_cls: type[Enum], enum_dict: dict[str, str]) -> None:

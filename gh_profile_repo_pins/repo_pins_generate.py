@@ -20,6 +20,7 @@ class GenerateRepoPins:
         user_repo_owner: str,
         login_username: str,
         login_user_name: str,
+        login_email: str,
         theme: str | dict,
         bg_img: dict | str = None,
     ) -> None:
@@ -32,6 +33,7 @@ class GenerateRepoPins:
                     user_repo_owner=user_repo_owner,
                     login_username=login_username,
                     login_user_name=login_user_name,
+                    login_email=login_email,
                     theme_name=self.__get_repo_theme_data(theme=theme, repo_data_i=i),
                     bg_img=self.__get_repo_bg_img_data(bg_img=bg_img, repo_data_i=i),
                 )
