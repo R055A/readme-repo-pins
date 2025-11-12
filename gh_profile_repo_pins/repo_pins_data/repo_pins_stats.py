@@ -76,8 +76,14 @@ class RepoPinStats:
         )
 
     def __format_author_email_str(self, author_str: str) -> tuple[str, str]:
-        author_email: list[str] = author_str.strip().lower().split(self.__EMAIL_OPEN_BRACKET)
-        return author_email[0].strip(), author_email[1].strip().rstrip(">").strip() if len(author_email) > 1 else None
+        author_email: list[str] = (
+            author_str.strip().lower().split(self.__EMAIL_OPEN_BRACKET)
+        )
+        return author_email[0].strip(), (
+            author_email[1].strip().rstrip(">").strip()
+            if len(author_email) > 1
+            else None
+        )
 
     def __fetch_repo_stats(
         self, owner_repo: str
@@ -87,7 +93,11 @@ class RepoPinStats:
         )
         tmp_dir: str = mkdtemp(prefix=self.__TMP_DIR)
 
-        repo_file_changes_add, repo_file_changes_del, commit_log_author_emails = {}, {}, {}
+        repo_file_changes_add, repo_file_changes_del, commit_log_author_emails = (
+            {},
+            {},
+            {},
+        )
         try:
             commit_data: CompletedProcess[str] | None = self.__fetch_git_commit_data(
                 url=url, tmp_dir=tmp_dir
@@ -108,18 +118,28 @@ class RepoPinStats:
                 if co_author:
                     commit_authors_emails.append(
                         self.__format_author_email_str(
-                            author_str=co_author.group().lower().split(self.__CO_AUTHOR_LABEL.lower())[1].strip()
+                            author_str=co_author.group()
+                            .lower()
+                            .split(self.__CO_AUTHOR_LABEL.lower())[1]
+                            .strip()
                         )
                     )
                     continue
 
-                if commit_authors_emails and self.__NUMSTAT_REG.match(string=commit_line):
+                if commit_authors_emails and self.__NUMSTAT_REG.match(
+                    string=commit_line
+                ):
                     add_str, del_str, _ = commit_line.split(sep="\t")
                     if add_str.isdigit() and del_str.isdigit():
                         for commit_author, commit_email in commit_authors_emails:
                             commit_author_key: str = commit_author
-                            for commit_log_author, commit_log_id in commit_log_author_emails.items():
-                                for commit_log_email in commit_log_id.get(enums.RepoPinsResDictKeys.EMAIL.value):
+                            for (
+                                commit_log_author,
+                                commit_log_id,
+                            ) in commit_log_author_emails.items():
+                                for commit_log_email in commit_log_id.get(
+                                    enums.RepoPinsResDictKeys.EMAIL.value
+                                ):
                                     if commit_log_email == commit_email:
                                         if len(commit_log_author) > len(commit_author):
                                             commit_author_key = commit_log_author
@@ -134,19 +154,21 @@ class RepoPinStats:
                                 + int(del_str) // len(commit_authors_emails)
                             )
 
-                            commit_log_author_emails[commit_author_key] = commit_log_author_emails.get(
-                                commit_author_key,
-                                {
-                                    enums.RepoPinsResDictKeys.AUTHOR.value: set(),
-                                    enums.RepoPinsResDictKeys.EMAIL.value: set()
-                                }
+                            commit_log_author_emails[commit_author_key] = (
+                                commit_log_author_emails.get(
+                                    commit_author_key,
+                                    {
+                                        enums.RepoPinsResDictKeys.AUTHOR.value: set(),
+                                        enums.RepoPinsResDictKeys.EMAIL.value: set(),
+                                    },
+                                )
                             )
-                            commit_log_author_emails[commit_author_key][enums.RepoPinsResDictKeys.AUTHOR.value].add(
-                                commit_author
-                            )
-                            commit_log_author_emails[commit_author_key][enums.RepoPinsResDictKeys.EMAIL.value].add(
-                                commit_email
-                            )
+                            commit_log_author_emails[commit_author_key][
+                                enums.RepoPinsResDictKeys.AUTHOR.value
+                            ].add(commit_author)
+                            commit_log_author_emails[commit_author_key][
+                                enums.RepoPinsResDictKeys.EMAIL.value
+                            ].add(commit_email)
 
         except CalledProcessError as err:
             raise RepoPinStatsError(
@@ -164,10 +186,14 @@ class RepoPinStats:
                     + repo_file_changes_del.get(commit_author, 0)
                 ),
                 enums.RepoPinsResDictKeys.AUTHOR.value: (
-                    commit_log_author_emails[commit_author][enums.RepoPinsResDictKeys.AUTHOR.value]
+                    commit_log_author_emails[commit_author][
+                        enums.RepoPinsResDictKeys.AUTHOR.value
+                    ]
                 ),
                 enums.RepoPinsResDictKeys.EMAIL.value: (
-                    commit_log_author_emails[commit_author][enums.RepoPinsResDictKeys.EMAIL.value]
+                    commit_log_author_emails[commit_author][
+                        enums.RepoPinsResDictKeys.EMAIL.value
+                    ]
                 ),
             }
             for commit_author in commit_authors

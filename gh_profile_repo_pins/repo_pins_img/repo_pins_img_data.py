@@ -97,14 +97,24 @@ class RepoPinImgData:
         }
 
         contribution_perc: float = 0
-        for contribution_data in repo_data.get(enums.RepoPinsResDictKeys.CONTRIBUTION.value, []) or []:
+        for contribution_data in (
+            repo_data.get(enums.RepoPinsResDictKeys.CONTRIBUTION.value, []) or []
+        ):
             if (
-                login_user_name in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
-                or login_username in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
-                or login_email in contribution_data.get(enums.RepoPinsResDictKeys.EMAIL.value, [])
+                login_user_name
+                in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
+                or login_username
+                in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
+                or login_email
+                in contribution_data.get(enums.RepoPinsResDictKeys.EMAIL.value, [])
             ):
                 contribution_perc = (
-                    contributions.get(contribution_data.get(enums.RepoPinsResDictKeys.LOGIN.value).strip(), 0)
+                    contributions.get(
+                        contribution_data.get(
+                            enums.RepoPinsResDictKeys.LOGIN.value
+                        ).strip(),
+                        0,
+                    )
                     / sum([v for _, v in contributions.items()])
                     * 100
                 )
