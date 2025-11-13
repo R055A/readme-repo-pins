@@ -10,7 +10,7 @@ class RepositoryOrderFieldEnum(Enum):
     PUSHED_AT = "pushedAt"
 
 
-class RepoPinsImgMediaBgImgMime(Enum):
+class RepoPinsImgMediaImgMime(Enum):
     PNG = "image/png"
     JPG = "image/jpeg"
     SVG = "image/svg+xml"
@@ -18,49 +18,49 @@ class RepoPinsImgMediaBgImgMime(Enum):
     WEB = "image/webp"
 
 
-class RepoPinsImgMediaBgImgAlignX(Enum):
+class RepoPinsImgMediaImgAlignX(Enum):
     xMin = "xmin"
     xMid = "xmid"
     xMax = "xmax"
 
 
-class RepoPinsImgMediaBgImgAlignY(Enum):
+class RepoPinsImgMediaImgAlignY(Enum):
     YMin = "ymin"
     YMid = "ymid"
     YMax = "ymax"
 
 
-class RepoPinsImgMediaBgImgAlign(Enum):
+class RepoPinsImgMediaImgAlign(Enum):
     xMinYMin = (
-        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+        RepoPinsImgMediaImgAlignX.xMin.value + RepoPinsImgMediaImgAlignY.YMin.value
     )
     xMinYMid = (
-        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+        RepoPinsImgMediaImgAlignX.xMin.value + RepoPinsImgMediaImgAlignY.YMid.value
     )
     xMinYMax = (
-        RepoPinsImgMediaBgImgAlignX.xMin.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+        RepoPinsImgMediaImgAlignX.xMin.value + RepoPinsImgMediaImgAlignY.YMax.value
     )
     xMidYMin = (
-        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+        RepoPinsImgMediaImgAlignX.xMid.value + RepoPinsImgMediaImgAlignY.YMin.value
     )
     xMidYMid = (
-        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+        RepoPinsImgMediaImgAlignX.xMid.value + RepoPinsImgMediaImgAlignY.YMid.value
     )
     xMidYMax = (
-        RepoPinsImgMediaBgImgAlignX.xMid.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+        RepoPinsImgMediaImgAlignX.xMid.value + RepoPinsImgMediaImgAlignY.YMax.value
     )
     xMaxYMin = (
-        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMin.value
+        RepoPinsImgMediaImgAlignX.xMax.value + RepoPinsImgMediaImgAlignY.YMin.value
     )
     xMaxYMid = (
-        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMid.value
+        RepoPinsImgMediaImgAlignX.xMax.value + RepoPinsImgMediaImgAlignY.YMid.value
     )
     xMaxYMax = (
-        RepoPinsImgMediaBgImgAlignX.xMax.value + RepoPinsImgMediaBgImgAlignY.YMax.value
+        RepoPinsImgMediaImgAlignX.xMax.value + RepoPinsImgMediaImgAlignY.YMax.value
     )
 
 
-class RepoPinsImgMediaBgImgMode(Enum):
+class RepoPinsImgMediaImgMode(Enum):
     SLICE = "cover"
     MEET = "contain"
     NONE = "stretch"

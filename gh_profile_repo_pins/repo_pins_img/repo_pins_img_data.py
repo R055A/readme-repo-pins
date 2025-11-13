@@ -26,6 +26,7 @@ class RepoPinImgData:
     is_private: bool
     theme: enums.RepoPinsImgThemeName
     bg_img: RepoPinImgMedia
+    user_img: RepoPinImgMedia
 
     @classmethod
     def repo_pages_url(cls, url: str) -> str:
@@ -46,7 +47,7 @@ class RepoPinImgData:
         user_repo_owner: str,
         login_username: str,
         login_user_name: str,
-        login_email: str,
+        login_user_id: str,
         theme_name: enums.RepoPinsImgThemeName = enums.RepoPinsImgThemeName.GITHUB_SOFT,
         bg_img: dict | str = None,
     ) -> "RepoPinImgData":
@@ -101,12 +102,24 @@ class RepoPinImgData:
             repo_data.get(enums.RepoPinsResDictKeys.CONTRIBUTION.value, []) or []
         ):
             if (
-                login_user_name
+                login_user_name  # real name, if using any
                 in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
-                or login_username
+                or login_username  # username, incase not including a real name or not using it and username instead
                 in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
-                or login_email
+                or f"{login_user_id}+{login_username}@users.noreply.github.com"  # GitHub email associated with account
                 in contribution_data.get(enums.RepoPinsResDictKeys.EMAIL.value, [])
+                or any(
+                    [
+                        email
+                        for email in contribution_data.get(
+                            enums.RepoPinsResDictKeys.EMAIL.value, []
+                        )
+                        if email.strip().startswith(f"{login_user_id}+")
+                        and email.strip().endswith(
+                            "@users.noreply.github.com"
+                        )  # if changed name, fallback to ID in email
+                    ]
+                )
             ):
                 user_contributions: float = contributions.get(
                     contribution_data.get(
@@ -186,6 +199,10 @@ class RepoPinImgData:
                 )
             ),
             bg_img=bg_img,
+            user_img=RepoPinImgMedia(
+                img=f"https://avatars.githubusercontent.com/u/{login_user_id}?v=4",
+                opacity=1.0,
+            ),
         )
 
     def __repr__(self) -> str:
@@ -207,4 +224,5 @@ class RepoPinImgData:
             if self.contribution_perc else ""}"
             f"\ntheme: {self.theme.value if self.theme else "None"}"
             f"\nbackground image: {f"\n{str(self.bg_img)}" if self.bg_img else "None\n"}"
+            f"\nuser image: {f"\n{str(self.user_img)}" if self.user_img else "None\n"}"
         )
