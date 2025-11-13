@@ -44,10 +44,6 @@ class GenerateRepoPins:
                 msg=f"Theme '{theme}' is either not in themes.json or the database is not updated with the json data."
             )
 
-        for repo in self.__repo_pins:
-            print(repo)
-        exit(0)
-
     def __get_repo_data_key(
         self, repo_data: dict | str | None, repo_data_i: dict
     ) -> str | None:
