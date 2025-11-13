@@ -522,7 +522,7 @@ class RepoPinImg:
             f'y="{footer_y:.2f}" '
             f'font-size="{self.__META_SIZE}" '
             f'fill="var(--text)">'
-            f"{txt}"
+            f"{txt if not (stats_icons[0] is self.__ICON_USER and stats_count == 1) else ""}"
             f"</text>"
             f"</g>"
         )
@@ -694,6 +694,7 @@ class RepoPinImg:
             footer_h=footer_h,
             is_collab_icon=True,
         )
+
         if (
             self.__repo_pin_data.contributor_count > 1
             and self.__repo_pin_data.contribution_perc
@@ -715,6 +716,11 @@ class RepoPinImg:
                 footer_y=footer_y,
             )
             footer_x -= self.__PADDING / 2
+        elif self.__repo_pin_data.contributor_count == 1:
+            self.__contribution_img(
+                footer_x=footer_x - self.__META_SIZE - self.__PADDING * 0.4,
+                footer_y=footer_y - self.__META_SIZE * 0.8,
+            )
         self.__href_link_close()
         return footer_x
 
@@ -857,6 +863,7 @@ class RepoPinImg:
 def tst_svg_render(
     test_theme_name: str = "github_soft",
     test_username: str = "R055A",
+    test_user_id: int = 14985050,
     test_bg_img: dict | str = None,
 ) -> None:
     from gh_profile_repo_pins.repo_pins_exceptions import (
@@ -957,7 +964,6 @@ def tst_svg_render(
             enums.RepoPinsResDictKeys.IS_PRIVATE.value: True,
             enums.RepoPinsResDictKeys.CONTRIBUTION.value: [
                 {enums.RepoPinsResDictKeys.LOGIN.value: test_username},
-                {enums.RepoPinsResDictKeys.LOGIN.value: "ANON"},
             ],
         },
         {
@@ -995,7 +1001,7 @@ def tst_svg_render(
                 user_repo_owner=test_username,
                 login_username=test_username,
                 login_user_name=test_username,
-                login_user_id=14985050,
+                login_user_id=test_user_id,
                 theme_name=enums.RepoPinsImgThemeName(test_theme_name),
                 bg_img=test_bg_img,
             )
