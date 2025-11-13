@@ -108,11 +108,18 @@ class RepoPinImgData:
                 in contribution_data.get(enums.RepoPinsResDictKeys.AUTHOR.value, [])
                 or f"{login_user_id}+{login_username}@users.noreply.github.com"  # GitHub email associated with account
                 in contribution_data.get(enums.RepoPinsResDictKeys.EMAIL.value, [])
-                or any([
-                    email for email in contribution_data.get(enums.RepoPinsResDictKeys.EMAIL.value, [])
-                    if email.strip().startswith(f"{login_user_id}+")
-                    and email.strip().endswith("@users.noreply.github.com")  # if changed name, fallback to ID in email
-                ])
+                or any(
+                    [
+                        email
+                        for email in contribution_data.get(
+                            enums.RepoPinsResDictKeys.EMAIL.value, []
+                        )
+                        if email.strip().startswith(f"{login_user_id}+")
+                        and email.strip().endswith(
+                            "@users.noreply.github.com"
+                        )  # if changed name, fallback to ID in email
+                    ]
+                )
             ):
                 user_contributions: float = contributions.get(
                     contribution_data.get(
@@ -195,7 +202,7 @@ class RepoPinImgData:
             user_img=RepoPinImgMedia(
                 img=f"https://avatars.githubusercontent.com/u/{login_user_id}?v=4",
                 opacity=1.0,
-            )
+            ),
         )
 
     def __repr__(self) -> str:

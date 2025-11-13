@@ -693,7 +693,7 @@ class RepoPinImg:
         ):
             footer_x -= self.__PADDING / 2
             footer_x = self.__footer_txt(
-                txt=f"(",
+                txt="(",
                 txt_x=footer_x,
                 footer_y=footer_y,
             )
@@ -897,22 +897,22 @@ def tst_svg_render(
                 {
                     enums.RepoPinsResDictKeys.LOGIN.value: test_username,
                     enums.RepoPinsResDictKeys.STATS.value: 737,
-                    enums.RepoPinsResDictKeys.AUTHOR.value: [test_username]
+                    enums.RepoPinsResDictKeys.AUTHOR.value: [test_username],
                 },
                 {
                     enums.RepoPinsResDictKeys.LOGIN.value: "ANON1",
                     enums.RepoPinsResDictKeys.STATS.value: 100,
-                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON1"]
+                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON1"],
                 },
                 {
                     enums.RepoPinsResDictKeys.LOGIN.value: "ANON2",
                     enums.RepoPinsResDictKeys.STATS.value: 63,
-                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON2"]
+                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON2"],
                 },
                 {
                     enums.RepoPinsResDictKeys.LOGIN.value: "ANON3",
                     enums.RepoPinsResDictKeys.STATS.value: 100,
-                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON3"]
+                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON3"],
                 },
             ],
         },
