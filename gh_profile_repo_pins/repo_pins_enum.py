@@ -8,6 +8,7 @@ class RepositoryOrderFieldEnum(Enum):
     CREATED_AT = "createdAt"
     UPDATED_AT = "updatedAt"
     PUSHED_AT = "pushedAt"
+    RANDOM = "random"
 
 
 class RepoPinsImgMediaImgMime(Enum):

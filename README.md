@@ -7,10 +7,18 @@ Supports multi-language displaying of private and public repository pins for bot
 Supports profile website deployment for full utilization of the frequently updated repository pin visualization features.  
 Pins can be customized by repo selection, dynamic order, background image (URL or path), and available themes.
 
+> Repository data is fetched from GitHub API, except for contribution data which is scraped from repository commit logs.
+
 ![example-1](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/imgs/0.svg) 
 ![example-2](https://raw.githubusercontent.com/R055A/R055A/refs/heads/main/imgs/1.svg)
 
 ## Instructions
+
+### Actions Workflow
+
+Refer [here](https://github.com/profile-icons/readme-repo-pins-action) for instructions.
+
+### Template Profile
 
 * Simply create a copy of the template repository by clicking [here](https://github.com/new?template_name=readme-repo-pins&template_owner=profile-icons)
   * name the new repository `Repository name*` identical to the `owner*` name.
@@ -23,8 +31,7 @@ This creates a GitHub profile with frequently updated repo pins using CI automat
 <!-- END: REPO-PINS -->
 ```
 
-The text in this repository is removed so that profiles only display the generated repository pins and other content
-added outside the placeholder. There is no further setup requirement for the profile repository and its automation.
+There is no further setup requirement aside for optional configurations.
 
 > The [template repo](https://github.com/profile-icons/readme-repo-pins) (and generated copies) execute the source code in this repo at runtime.
 
@@ -37,7 +44,7 @@ private profile `README.md`, but supports broader use cases with optional person
 
 The optional `THEME` configuration controls the visual color scheme of the generated SVG pin background, border, text, and icon features.
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 * key: `THEME`
 * value (either one of the two formats):
   * `{<owner/repo>: <theme_name>}` - individual pin theme(s)
@@ -55,7 +62,7 @@ where:
 
 The optional `BG_IMG` configuration controls the embedding of select imagery to the background of the generated SVG pin(s).
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 * key: `BG_IMG`
 * value (either one of the three formats):
   * `{<owner/repo>: <img-config-dict>}` - individual pin background image(s)
@@ -84,7 +91,7 @@ where:
 
 The optional `REPO_NAMES_EXCLUSIVE` configuration controls the exclusive generation of pins for a given list of repository names.
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
 * key: `REPO_NAMES_EXCLUSIVE`
 * value: `<owner/repo>,...,<owner/repo>`
@@ -98,7 +105,7 @@ where:
 The optional `IS_CONTRIBUTION_STATS` configuration controls whether a (user) contribution percentage is appended to 
 the repository contributor count in the pin footer, enclosed in parentheses, such as: ![ICON](https://raw.githubusercontent.com/primer/octicons/refs/heads/main/icons/people-16.svg) 22 (99.9%).
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
 * key: `IS_CONTRIBUTION_STATS`
 * value: `[is_stats]`
@@ -115,7 +122,7 @@ The default [rate limit](https://docs.github.com/en/graphql/overview/rate-limits
 The rate limit when using a PAT is increased to 5000, and provides access to authorized private repository data so that pins can be generated for both
 public and private repositories to both public and private profiles.
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
 * key: `GH_API_TOKEN`
 * value: `[PAT]`
@@ -129,9 +136,9 @@ where:
 
 ### Number
 
-The optional `NUM_REPO_PINS` configuration controls the maximum possible number of repository pins to generate up to a hard limit of `40`.
+The optional `NUM_REPO_PINS` configuration controls the maximum possible number of repository pins to generate up to a hard limit of `100`.
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
 * key: `NUM_REPO_PINS`
 * value: `[num]`
@@ -147,13 +154,18 @@ where:
 
 The optional `REPO_PIN_ORDER` configuration controls the dynamic ordering of generated repository pin visualizations.
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
 * key: `REPO_PIN_ORDER`
 * value: `[order]`
 
 where:
-* `order` is any value in [RepositoryOrderField](https://docs.github.com/en/graphql/reference/enums#repositoryorderfield) - optional `[]`
+* `order` is optionally any value in:
+  * `stargazers` - the number of stars the repo has
+  * `name` - the repo name
+  * `created_at` - the datetime the repo is initially created
+  * `pushed_at` - the datetime the repo is last pushed to
+  * `random` - any random order
 
 > The default `REPO_PIN_ORDER` is `STARGAZERS`
 
@@ -166,7 +178,7 @@ other repositories owned by the user, and then other repositories the user has c
 
 The optional `IS_EXCLUDE_REPOS_OWNED` configuration controls whether repositories owned by a user but not pinned are excluded.
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
 * key: `IS_EXCLUDE_REPOS_OWNED`
 * value: `[is_exclude]`
@@ -185,7 +197,7 @@ other repositories owned by the user, and then other repositories the user has c
 
 The optional `IS_EXCLUDE_REPOS_CONTRIBUTED` configuration controls whether repositories contributed to but not owned by a user are excluded.
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
 * key: `IS_EXCLUDE_REPOS_CONTRIBUTED`
 * value: `[is_exclude]`
@@ -201,7 +213,7 @@ where:
 
 The optional `GH_USERNAME` configuration controls which (pinned/owned/contributed to) repositories are displayed by association.
 
-This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) (in a template-generated repo) with the following key-value field pairs:
+This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
 * key: `GH_USERNAME`
 * value: `[username]`
