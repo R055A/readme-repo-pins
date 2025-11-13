@@ -641,6 +641,27 @@ class RepoPinImg:
         self.__href_link_close()
         return footer_x
 
+    def __contribution_img(self, footer_x: float, footer_y: float) -> None:
+        self.__repo_pin_data.user_img.load()
+        img_radius: float = self.__META_SIZE / 2
+        self.__svg_str += (
+            "<defs>"
+            f'<clipPath id="avatarClip">'
+            f'<circle cx="{footer_x + img_radius}" cy="{footer_y + img_radius}" r="{img_radius}" />'
+            "</clipPath>"
+            "</defs>"
+            "<image "
+            f'href="{self.__repo_pin_data.user_img.encoded_url}" '
+            f'x="{footer_x}" '
+            f'y="{footer_y}" '
+            f'width="{self.__META_SIZE}" '
+            f'height="{self.__META_SIZE}" '
+            f'preserveAspectRatio="{self.__repo_pin_data.user_img.mode.name.lower()}" '
+            f'opacity="{self.__repo_pin_data.user_img.opacity}" '
+            'clip-path="url(#avatarClip)" '
+            "/>"
+        )
+
     def __footer_contributors(
         self, footer_x: float, footer_y: float, footer_h: float
     ) -> float:
@@ -672,7 +693,17 @@ class RepoPinImg:
         ):
             footer_x -= self.__PADDING / 2
             footer_x = self.__footer_txt(
-                txt=f"({str(round(self.__repo_pin_data.contribution_perc, 1)).rstrip("0").rstrip(".")}%)",
+                txt=f"(",
+                txt_x=footer_x,
+                footer_y=footer_y,
+            )
+            self.__contribution_img(
+                footer_x=footer_x - self.__META_SIZE - self.__PADDING * 0.4,
+                footer_y=footer_y - self.__META_SIZE * 0.8,
+            )
+            footer_x -= self.__PADDING * 0.3
+            footer_x = self.__footer_txt(
+                txt=f" {str(round(self.__repo_pin_data.contribution_perc, 1)).rstrip("0").rstrip(".")}%)",
                 txt_x=footer_x,
                 footer_y=footer_y,
             )
@@ -705,19 +736,19 @@ class RepoPinImg:
     def __bg_img(self) -> None:
         self.__repo_pin_data.bg_img.load()
         self.__svg_str += (
-            f"<image "
+            "<image "
             f'href="{self.__repo_pin_data.bg_img.encoded_url}" '
-            f'x="0" '
-            f'y="0" '
+            'x="0" '
+            'y="0" '
             f'width="{self.__WIDTH}" '
             f'height="{self.__HEIGHT}" '
             f'preserveAspectRatio="{(
                 self.__repo_pin_data.bg_img.align.name + " "
-                if self.__repo_pin_data.bg_img.mode != enums.RepoPinsImgMediaBgImgMode.NONE 
+                if self.__repo_pin_data.bg_img.mode != enums.RepoPinsImgMediaImgMode.NONE 
                 else ""
             )}{self.__repo_pin_data.bg_img.mode.name.lower()}" '
             f'opacity="{self.__repo_pin_data.bg_img.opacity}" '
-            f"/>"
+            "/>"
         )
 
     def __render_svg(self) -> None:
@@ -863,10 +894,26 @@ def tst_svg_render(
             enums.RepoPinsResDictKeys.IS_ARCHIVE.value: True,
             enums.RepoPinsResDictKeys.IS_PRIVATE.value: False,
             enums.RepoPinsResDictKeys.CONTRIBUTION.value: [
-                {enums.RepoPinsResDictKeys.LOGIN.value: test_username, "stats": 737},
-                {enums.RepoPinsResDictKeys.LOGIN.value: "ANON1", "stats": 100},
-                {enums.RepoPinsResDictKeys.LOGIN.value: "ANON2", "stats": 63},
-                {enums.RepoPinsResDictKeys.LOGIN.value: "ANON3", "stats": 100},
+                {
+                    enums.RepoPinsResDictKeys.LOGIN.value: test_username,
+                    enums.RepoPinsResDictKeys.STATS.value: 737,
+                    enums.RepoPinsResDictKeys.AUTHOR.value: [test_username]
+                },
+                {
+                    enums.RepoPinsResDictKeys.LOGIN.value: "ANON1",
+                    enums.RepoPinsResDictKeys.STATS.value: 100,
+                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON1"]
+                },
+                {
+                    enums.RepoPinsResDictKeys.LOGIN.value: "ANON2",
+                    enums.RepoPinsResDictKeys.STATS.value: 63,
+                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON2"]
+                },
+                {
+                    enums.RepoPinsResDictKeys.LOGIN.value: "ANON3",
+                    enums.RepoPinsResDictKeys.STATS.value: 100,
+                    enums.RepoPinsResDictKeys.AUTHOR.value: ["ANON3"]
+                },
             ],
         },
         {
@@ -937,7 +984,7 @@ def tst_svg_render(
                 user_repo_owner=test_username,
                 login_username=test_username,
                 login_user_name=test_username,
-                login_email=f"12345678+{test_username}@users.noreply.github.com",
+                login_user_id="14985050",
                 theme_name=enums.RepoPinsImgThemeName(test_theme_name),
                 bg_img=test_bg_img,
             )
