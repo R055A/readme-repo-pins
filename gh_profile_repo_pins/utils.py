@@ -236,7 +236,7 @@ def parse_args() -> (
     )
 
 
-def tst_svg_parse_args() -> tuple[str, str, dict | str]:
+def tst_svg_parse_args() -> tuple[str, str, int, dict | str]:
     parser = ArgumentParser(description="Local test pin themes and SVG rendering.")
     parser.add_argument(
         "--theme",
@@ -251,6 +251,12 @@ def tst_svg_parse_args() -> tuple[str, str, dict | str]:
         help="A GitHub account username.",
     )
     parser.add_argument(
+        "--id",
+        type=int,
+        default=14985050,
+        help="A GitHub account user database ID (used in the GitHub email).",
+    )
+    parser.add_argument(
         "--img",
         type=str,
         default=None,
@@ -260,6 +266,7 @@ def tst_svg_parse_args() -> tuple[str, str, dict | str]:
     return (
         args.theme.lower() if args.theme else args.theme,
         args.username,
+        args.id,
         parse_bg_img(bg_img=args.img),
     )
 
