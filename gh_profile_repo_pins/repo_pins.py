@@ -9,6 +9,8 @@ from gh_profile_repo_pins.repo_pins_data.repo_pins_stats import RepoPinStats
 from gh_profile_repo_pins.utils import set_git_creds, get_logger, Logger
 from gh_profile_repo_pins.repo_pins_generate import GenerateRepoPins
 import gh_profile_repo_pins.repo_pins_enum as enums
+from random import seed, sample
+from datetime import datetime
 
 
 class ReadMeRepoPins:
@@ -124,18 +126,30 @@ class ReadMeRepoPins:
                 if self.__repo_priority_order
                 else self.__DEFAULT_ORDER_FIELD.value
             )
-            self.__repo_pins = sorted(
-                self.__repo_pins,
-                key=lambda d: next(
-                    (v for k, v in d.items() if order_field.upper() == k.upper()), 0
-                ),
-                reverse=(
-                    True
-                    if order_field.upper()
-                    != enums.RepositoryOrderFieldEnum.NAME.value.upper()
-                    else False
-                ),
-            )[: self.__max_num_pins]
+            if self.__repo_priority_order is enums.RepositoryOrderFieldEnum.RANDOM:
+                today: datetime = datetime.today()
+                seed(
+                    a=str(self.__gh_api_client.user_id)[5:]
+                    + str(today.month)
+                    + str(today.day)
+                    + str(today.hour)
+                )
+                self.__repo_pins = sample(
+                    population=self.__repo_pins, k=len(self.__repo_pins)
+                )[: self.__max_num_pins]
+            else:
+                self.__repo_pins = sorted(
+                    self.__repo_pins,
+                    key=lambda d: next(
+                        (v for k, v in d.items() if order_field.upper() == k.upper()), 0
+                    ),
+                    reverse=(
+                        True
+                        if order_field.upper()
+                        != enums.RepositoryOrderFieldEnum.NAME.value.upper()
+                        else False
+                    ),
+                )[: self.__max_num_pins]
 
     def __generate_readme_pin_grid_display(self) -> None:
         gen_repo_pins: GenerateRepoPins = GenerateRepoPins(
@@ -181,7 +195,12 @@ class ReadMeRepoPins:
                 ):
                     owned_repos.extend(
                         self.__gh_api_client.fetch_owned_or_contributed_to_repo_data(
-                            order_field=self.__repo_priority_order,
+                            order_field=(
+                                self.__repo_priority_order
+                                if self.__repo_priority_order
+                                is not enums.RepositoryOrderFieldEnum.RANDOM
+                                else self.__DEFAULT_ORDER_FIELD
+                            ),
                             pinned_repo_urls=[
                                 d[enums.RepoPinsResDictKeys.URL.value]
                                 for d in self.__repo_pins
@@ -194,7 +213,12 @@ class ReadMeRepoPins:
                 ):
                     contributed_repos.extend(
                         self.__gh_api_client.fetch_owned_or_contributed_to_repo_data(
-                            order_field=self.__repo_priority_order,
+                            order_field=(
+                                self.__repo_priority_order
+                                if self.__repo_priority_order
+                                is not enums.RepositoryOrderFieldEnum.RANDOM
+                                else self.__DEFAULT_ORDER_FIELD
+                            ),
                             pinned_repo_urls=[
                                 d[enums.RepoPinsResDictKeys.URL.value]
                                 for d in self.__repo_pins

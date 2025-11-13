@@ -47,7 +47,7 @@ class RepoPinImgData:
         user_repo_owner: str,
         login_username: str,
         login_user_name: str,
-        login_user_id: str,
+        login_user_id: int,
         theme_name: enums.RepoPinsImgThemeName = enums.RepoPinsImgThemeName.GITHUB_SOFT,
         bg_img: dict | str = None,
     ) -> "RepoPinImgData":
