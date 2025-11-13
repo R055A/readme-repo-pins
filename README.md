@@ -164,6 +164,7 @@ where:
   * `stargazers` - the number of stars the repo has
   * `name` - the repo name
   * `created_at` - the datetime the repo is initially created
+  * `updated_at` - the datetime the repo is last updated
   * `pushed_at` - the datetime the repo is last pushed to
   * `random` - any random order
 
