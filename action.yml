@@ -7,10 +7,10 @@ branding:
 
 inputs:
   gh_api_token:
-    description: "GitHub PAT. Required for org profiles and private repo pins, but not for user profiles and public repo pins with workflow default: ${{ github.token }}"
+    description: "GitHub PAT. Required for org profiles and private repo pins, but not for user profiles and public repo pins with workflow default: secrets.GITHUB_TOKEN."
     required: true
   gh_username:
-    description: "GitHub username. Required for org, but not for user profiles with workflow default: ${{ github.repository_owner }}."
+    description: "GitHub username. Required for org, but not for user profiles with workflow default: github.repository_owner."
     required: true
   theme:
     description: "Theme name. Default is github_soft. Add themes at: profile-icons/readme-repo-pins-src."
@@ -46,6 +46,14 @@ runs:
         token: ${{ inputs.gh_api_token }}
         fetch-depth: 0
 
+    - name: Checkout src
+      uses: actions/checkout@v5
+      with:
+        repository: profile-icons/readme-repo-pins-src
+        ref: main
+        path: readme-repo-pins-src
+        fetch-depth: 1
+
     - name: Setup
       uses: actions/setup-python@v6
       with:
@@ -57,7 +65,7 @@ runs:
         PIP_DISABLE_PIP_VERSION_CHECK: '1'
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r readme-repo-pins-src/requirements.txt
 
     - name: Run
       shell: bash
@@ -74,7 +82,7 @@ runs:
         IS_EXCLUDE_REPOS_CONTRIBUTED: ${{ inputs.is_exclude_repos_contributed }}
         IS_CONTRIBUTION_STATS: ${{ inputs.is_contribution_stats }}
       run: |
-        python gh_profile_repo_pins.py
+        python readme-repo-pins-src/gh_profile_repo_pins.py
 
     - name: Commit
       shell: bash
