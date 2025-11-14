@@ -7,15 +7,13 @@ branding:
 
 inputs:
   gh_api_token:
-    description: "GitHub PAT. Not required but for organisation profiles and private repo pins."
-    default: ${{ github.token }}
-    required: false
+    description: "GitHub PAT. Required for org profiles and private repo pins, but not for user profiles and public repo pins with workflow default: ${{ github.token }}"
+    required: true
   gh_username:
-    description: "GitHub username. Not required but for organisation profiles."
-    default: ${{ github.repository_owner }}
-    required: false
+    description: "GitHub username. Required for org, but not for user profiles with workflow default: ${{ github.repository_owner }}."
+    required: true
   theme:
-    description: "Theme name. Default is GitHub soft. Add themes at: profile-icons/readme-repo-pins-src."
+    description: "Theme name. Default is github_soft. Add themes at: profile-icons/readme-repo-pins-src."
     required: false
   background_image:
     description: "Background image (URL or file path)."
@@ -33,10 +31,10 @@ inputs:
     description: "The order of repo pins displayed. Default is stargazer count."
     required: false
   is_exclude_repos_owned:
-    description: "Exclude owned repos not pinned. True (any input) or False (empty). Overruled by repo_names_exclusive."
+    description: "Exclude owned repos not pinned. True (any input) or False (empty). Overridden by repo_names_exclusive."
     required: false
   is_exclude_repos_contributed:
-    description: "Exclude contributed repos not owned or pinned. True (any input) or False (empty). Overruled by repo_names_exclusive."
+    description: "Exclude contributed repos not owned or pinned. True (any input) or False (empty). Overridden by repo_names_exclusive."
     required: false
 
 runs:
