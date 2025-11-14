@@ -103,7 +103,7 @@ class RepoPinsResDictKeys(Enum):
     DESCRIPTION = "description"
     IS_FORK = "isFork"
     IS_TEMPLATE = "isTemplate"
-    IS_ARCHIVE = "isArchive"
+    IS_ARCHIVE = "isArchived"
     IS_PRIVATE = "isPrivate"
     TTL_COUNT = "totalCount"
     LANGUAGE = "primaryLanguage"
