@@ -34,8 +34,8 @@ jobs:
     steps:
       - uses: profile-icons/readme-repo-pins-src@v1
         with:
-          gh_api_token: ${{ secrets.GH_API_TOKEN || secrets.GITHUB_TOKEN }}  # optional
-          gh_username: ${{ secrets.GH_USERNAME || github.repository_owner }}  # optional
+          gh_api_token: ${{ secrets.GH_API_TOKEN || secrets.GITHUB_TOKEN }}  # required, uses default fallback
+          gh_username: ${{ secrets.GH_USERNAME || github.repository_owner }}  # required, uses default fallback
           theme: ${{ secrets.THEME }}  # optional
           background_image: ${{ secrets.BG_IMG }}  # optional
           num_repo_pins: ${{ secrets.NUM_REPO_PINS }}  # optional
@@ -173,7 +173,7 @@ where:
 
 ### Number
 
-The optional `NUM_REPO_PINS` configuration controls the maximum possible number of repository pins to generate up to a hard limit of `100`.
+The optional `NUM_REPO_PINS` configuration controls the maximum possible numb[README.md](README.md)er of repository pins to generate up to a hard limit of `100`.
 
 This can be set by creating a [GitHub Action](https://docs.github.com/en/actions) with the following key-value field pairs:
 
