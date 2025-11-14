@@ -1,7 +1,7 @@
 # GitHub Profile Repository Pins
 
 Personalize selection, visualization and dynamic ordering of repository pins for public and private GitHub profiles.  
-No PAT required, just copy the repo using the template feature for efficient data fetching and visualization rendering.  
+No PAT required, just copy the [workflow](#actions-workflow) or repo [template](#template-profile) for efficient data fetching and visualization rendering.  
 Supports multi-language displaying of private and public repository pins for both user and organisation profiles.  
 Supports profile website deployment for full utilization of the frequently updated repository pin visualization features.  
 Pins can be customized by repo selection, stats, order, background image (URL or path), and available themes.
@@ -15,7 +15,39 @@ Pins can be customized by repo selection, stats, order, background image (URL or
 
 ### Actions Workflow
 
-Refer [here](https://github.com/profile-icons/readme-repo-pins-action) for instructions.
+Copy the workflow `<workflow>.yml` to `.github/workflows/` in a user/org profile repository:
+
+```yaml
+name: generate-profile-repo-pins
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-pins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: profile-icons/readme-repo-pins-src@v1
+        with:
+          gh_api_token: ${{ secrets.GH_API_TOKEN || secrets.GITHUB_TOKEN }}  # optional
+          gh_username: ${{ secrets.GH_USERNAME || github.repository_owner }}  # optional
+          theme: ${{ secrets.THEME }}  # optional
+          background_image: ${{ secrets.BG_IMG }}  # optional
+          num_repo_pins: ${{ secrets.NUM_REPO_PINS }}  # optional
+          repo_pin_order: ${{ secrets.REPO_PIN_ORDER }}  # optional
+          repo_names_exclusive: ${{ secrets.REPO_NAMES_EXCLUSIVE }}  # optional
+          is_exclude_repos_owned: ${{ secrets.IS_EXCLUDE_REPOS_OWNED }}  # optional
+          is_exclude_repos_contributed: ${{ secrets.IS_EXCLUDE_REPOS_CONTRIBUTED }}  # optional
+          is_contribution_stats: ${{ secrets.IS_CONTRIBUTION_STATS }}  # optional
+ 
+```
+
+> The workflow execute the [action.yml](https://github.com/profile-icons/readme-repo-pins-src/blob/main/action.yml) and source code in this repo.
 
 ### Template Profile
 
@@ -23,16 +55,22 @@ Refer [here](https://github.com/profile-icons/readme-repo-pins-action) for instr
   * name the new repository `Repository name*` identical to the `owner*` name.
   * select the green `Create Repository` button.
 
-This creates a GitHub profile with frequently updated repo pins using CI automation and a placeholder:
+> The [template repo](https://github.com/profile-icons/readme-repo-pins) (and generated copies) execute the source code in this repo.
+
+The source code creates a profile with frequently updated repo pins using CI automation and a placeholder:
 
 ```
 <!-- START: REPO-PINS -->
 <!-- END: REPO-PINS -->
 ```
 
-There is no further setup requirement aside for optional configurations.
+If you want an auto-updated GitHub profile, ensure the placeholder is in a `README.md` file.  
+If you want a GitHub Pages profile, ensure the placeholder is in an `index.md` file.
+The files should be located in:
+  * `/` root directory for GitHub user profile and GitHub Pages profile
+  * `/profile` directory for a GitHub organisation profile.  
 
-> The [template repo](https://github.com/profile-icons/readme-repo-pins) (and generated copies) execute the source code in this repo at runtime.
+There is no further setup requirement aside for optional configurations.
 
 ## Configurations (optional)
 
